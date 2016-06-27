@@ -1,5 +1,15 @@
+# Intellij
+.idea
+*.iml
+*.iws
+
+# Mac
 .DS_Store
+
+# node
 node_modules
-dist
 npm-debug.log
+
+# other
+dist/bundle.js
 
