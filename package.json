@@ -1,7 +1,7 @@
 {
   "name": "react-hello-world",
   "version": "0.0.1",
-  "description": "react+babel+webpack",
+  "description": "React Project Boilerplate, with React + Babel + Webpack",
   "author": "jiangxiyang",
   "engines": {
     "node": ">=5.0 <7",

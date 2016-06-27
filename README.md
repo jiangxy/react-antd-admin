@@ -24,14 +24,15 @@
 | .stylelintrc  | StyleLint配置文件。http://stylelint.io/ |
 | dist | 编译时的目标目录。js文件编译后会在这个目录生成bundle.js文件。这个目录也包括一个index.html文件用于承载js。 |
 | docs | 放置各种项目文档 |
-| node_modules | 存放各种node模块，`npm install`会自动生成 |
-| package.json | 项目的配置，包括一些基本信息和依赖等 |
+| node_modules | 放置各种node模块，`npm install`时会自动生成 |
+| package.json | 项目的配置，包括一些基本信息和依赖关系等 |
 | src/components | 所有React组件放在这里，每个组件单独一个目录。|
-| src/index.js | 编译js时的入口，通俗的说，是将各种React组件组装起来的地方 |
+| src/index.js | 编译js时的入口。通俗的说，是将各种React组件组装起来的地方 |
 | webpack.config.js | webpack的配置文件 |
 
 ## 一些约定
 
-1. 使用ES6的写法
-2. 每个React组件尽量“高内聚”，相关的配置、样式等都放在同一个目录中
+1. 所有js/jsx文件，使用ES6的写法。
+2. 样式文件尽量使用less而不是css。
+3. React组件尽量“高内聚”，相关的配置、样式等都放在同一个目录中。
 
