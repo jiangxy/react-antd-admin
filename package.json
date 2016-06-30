@@ -33,9 +33,9 @@
   },
   "dependencies": {},
   "scripts": {
-    "build": "webpack",
+    "build": "webpack --progress --colors",
     "dev": "webpack-dev-server --devtool eval --progress --colors --content-base dist --hot --inline",
-    "eslint": "eslint --ext .js,.jsx src",
+    "eslint": "eslint --ext .js,.jsx src --fix",
     "stylelint": "stylelint \"src/**/*.css\"",
     "lint": "npm run eslint && npm run stylelint"
   }
