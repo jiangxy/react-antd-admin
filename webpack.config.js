@@ -25,7 +25,8 @@ module.exports = {
         test: /\.jsx?$/,
         loader: 'babel-loader',
         query: {
-          presets: ['es2015', 'stage-0', 'react'],  // 开启ES6、部分ES7、react特性
+          presets: ['es2015', 'stage-0', 'react'],  // 开启ES6、部分ES7、react特性, preset相当于预置的插件集合
+          plugins: [['antd', {'style': 'css'}]],  // antd模块化加载, https://github.com/ant-design/babel-plugin-antd
         },
         exclude: /node_modules/,
       }, {
