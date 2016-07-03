@@ -2,7 +2,7 @@ import React from 'react';
 import Header from '../Header';
 import Footer from '../Footer';
 import Sidebar from '../Sidebar';
-import 'antd_css';
+import Breadcrumb from '../Breadcrumb';
 import './index.less';
 
 /**
@@ -17,7 +17,9 @@ class App extends React.Component {
         {/*整个页面被一个ant-layout-aside的div包围, 分为sidebar/header/footer/content等几部分*/}
         <Sidebar />
         <div className="ant-layout-main">
+
           <Header userName="jiangxiyang"/>
+          <Breadcrumb {...this.props} />
 
           {/*TODO: 这里要组件化*/}
           <div className="ant-layout-container">
@@ -29,12 +31,12 @@ class App extends React.Component {
           </div>
 
           <Footer />
+
         </div>
       </div>
     );
   }
 
 }
-
 
 export default App;

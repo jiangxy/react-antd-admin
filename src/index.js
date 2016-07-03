@@ -5,17 +5,52 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {Router, Route, IndexRoute, hashHistory} from 'react-router';
-import Hello from './components/Hello';
-import Hello2 from './components/Hello2';
-import App from './components/App';
+import 'antd_css';  // 在这里引入antd的css
 
-// 路由表
-ReactDOM.render((
+// 开始引入各种自定义的组件
+import App from './components/App';
+import Welcome from './components/Welcome';
+import NotFound from './components/NotFound';
+import Hello from './components/Hello';
+
+// 路由表, 必须和menu.js中一致
+const routes = (
   <Router history={hashHistory}>
     <Route path="/" component={App}>
-      <IndexRoute component={Hello2}/>
-      <Route breadcrumbName="hello" path="/hello" component={Hello}/>
-      <Route breadcrumbName="hello2" path="/hello2" component={Hello2}/>
+      <IndexRoute component={Welcome}/>
+
+      <Route path="index">
+        <Route path="option1" component={Hello}/>
+        <Route path="option2" component={Hello}/>
+        <Route path="option3" component={Hello}/>
+      </Route>
+
+      <Route path="daohang">
+        <Route path="555" component={Hello}/>
+        <Route path="sanji">
+          <Route path="666" component={Hello}/>
+          <Route path="777" component={Hello}/>
+          <Route path="888" component={Hello}/>
+          <Route path="999" component={Hello}/>
+        </Route>
+      </Route>
+
+      <Route path="test">
+        <Route path="aaa" component={Hello}/>
+        <Route path="bbb" component={Hello}/>
+        <Route path="ccc" component={Hello}/>
+        <Route path="sanjiaaa">
+          <Route path="666aa" component={Hello}/>
+        </Route>
+        <Route path="sanjibbb">
+          <Route path="666bb" component={Hello}/>
+        </Route>
+      </Route>
+
+      <Route path="*" component={NotFound}/>
+
     </Route>
   </Router>
-), document.getElementById('root'));
+);
+
+ReactDOM.render(routes, document.getElementById('root'));

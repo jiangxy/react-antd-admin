@@ -1,7 +1,7 @@
 import React from 'react';
 
 /**
- * 定义Footer组件, 就是一句话
+ * 定义Footer组件
  */
 class Footer extends React.Component {
 
