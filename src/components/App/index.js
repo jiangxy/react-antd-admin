@@ -24,9 +24,7 @@ class App extends React.Component {
           {/*TODO: 这里要组件化*/}
           <div className="ant-layout-container">
             <div className="ant-layout-content">
-              <div style={{ height: 590 }}>
-                {this.props.children}
-              </div>
+              {this.props.children}
             </div>
           </div>
 

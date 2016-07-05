@@ -5,3 +5,5 @@
 - [ ] 拆解App/index.less
 - [ ] 升级antd解决hover的bug
 - [ ] 侧边栏只能展开一级菜单
+- [ ] schema校验
+- [ ] 数据校验

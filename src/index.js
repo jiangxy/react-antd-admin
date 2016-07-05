@@ -10,8 +10,9 @@ import 'antd_css';  // 在这里引入antd的css
 // 开始引入各种自定义的组件
 import App from './components/App';
 import Welcome from './components/Welcome';
-import NotFound from './components/NotFound';
+import Error from './components/Error';
 import Hello from './components/Hello';
+import DBTable from './components/DBTable';
 
 // 路由表, 必须和menu.js中一致
 const routes = (
@@ -20,7 +21,7 @@ const routes = (
       <IndexRoute component={Welcome}/>
 
       <Route path="index">
-        <Route path="option1" component={Hello}/>
+        <Route path="option1" component={DBTable}/>
         <Route path="option2" component={Hello}/>
         <Route path="option3" component={Hello}/>
       </Route>
@@ -47,7 +48,7 @@ const routes = (
         </Route>
       </Route>
 
-      <Route path="*" component={NotFound}/>
+      <Route path="*" component={Error}/>
 
     </Route>
   </Router>
