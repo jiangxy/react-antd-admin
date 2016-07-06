@@ -6,6 +6,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import {Router, Route, IndexRoute, hashHistory} from 'react-router';
 import 'antd_css';  // 在这里引入antd的css
+import './utils/index.js';  // 引入各种辅助方法
 
 // 开始引入各种自定义的组件
 import App from './components/App';
