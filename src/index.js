@@ -14,14 +14,15 @@ import Error from './components/Error';
 import Hello from './components/Hello';
 import DBTable from './components/DBTable';
 
-// 路由表, 必须和menu.js中一致
+// 路由表, 只要menu.js中所有的叶子节点配置了路由就可以了
+// 我本来想根据menu.js自动生成路由表, 但那样太不灵活了, 还是自己配置好些
 const routes = (
   <Router history={hashHistory}>
     <Route path="/" component={App}>
       <IndexRoute component={Welcome}/>
 
       <Route path="index">
-        <Route path="option1" component={DBTable}/>
+        <Route path="option1" tableName="test" component={DBTable}/>
         <Route path="option2" component={Hello}/>
         <Route path="option3" component={Hello}/>
       </Route>

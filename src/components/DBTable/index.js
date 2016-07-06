@@ -788,6 +788,7 @@ class InnerForm extends React.Component {
             <Button type="primary" onClick={this.handleSubmit}><Icon type="search"/>查询</Button>
             <Button onClick={this.handleReset}><Icon type="cross"/>清除条件</Button>
             <Button><Icon type="export"/>导出</Button>
+            <Button><Icon type="save"/>导入</Button>
           </Col>
         </Row>
       </Form>

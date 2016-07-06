@@ -12,7 +12,7 @@ class Error extends React.Component {
     return (
       <div className="not-found">
         <div style={{ fontSize:32 }}><Icon type="frown"/></div>
-        <h1>{this.props.errorMsg || '出错了...'}</h1>
+        <h1>{this.props.errorMsg || '404 Not Found'}</h1>
       </div>
     );
   }

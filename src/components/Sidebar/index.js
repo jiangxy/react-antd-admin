@@ -2,7 +2,7 @@ import React from 'react';
 import {Link} from 'react-router';
 import {Menu, Icon} from 'antd';
 import Logo from '../Logo';
-import items from 'menu.js';   // just for test, 由于webpack中的设置, 不用写完整路径
+import items from 'menu.js';  // 由于webpack中的设置, 不用写完整路径
 
 const SubMenu = Menu.SubMenu;
 const MenuItem = Menu.Item;

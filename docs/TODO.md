@@ -20,6 +20,7 @@
 - [ ] logo和footer可以做成全局配置
 - [ ] 引入redux
 - [ ] 用户手册
+- [ ] 增加debug日志
 
 ### DBTable
 
