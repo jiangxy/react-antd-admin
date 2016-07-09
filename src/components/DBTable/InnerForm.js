@@ -297,7 +297,7 @@ class InnerForm extends React.Component {
       if (!info.file.response.success) {
         notification.error({
           message: '导入失败',
-          description: info.file.response.errorMsg,
+          description: `请联系管理员, 错误信息: ${info.file.response.errorMsg}`,
           duration: 0,
         });
       } else {
@@ -320,6 +320,7 @@ class InnerForm extends React.Component {
     // 将提交的值中undefined的去掉
     const newObj = {};
     const oldObj = this.props.form.getFieldsValue();
+    let count = 0;  // newObj中总共有几个属性?
     for (const key in oldObj) {
       if (oldObj[key]) {
         // 对于js的日期类型, 要转换成字符串再传给后端
@@ -328,10 +329,19 @@ class InnerForm extends React.Component {
         } else {
           newObj[key] = oldObj[key];
         }
+        count++;
       }
     }
 
+    // 导出前必须选定了一些查询条件, 不允许导出全表
+    // 防止误操作
+    if (count === 0) {
+      message.warning('导出时查询条件不能为空', 4.5);
+      return;
+    }
+
     // ajax是不能处理下载请求的, 必须交给浏览器自己去处理
+    // 坏处是我就不知道用户的下载是否成功了
     const url = `${globalConfig.apiHost}/${globalConfig.apiPath}/${this.props.tableName}/export`;
     window.open(`${url}?q=${encodeURIComponent(JSON.stringify(newObj))}`);  // 注意url编码
   }

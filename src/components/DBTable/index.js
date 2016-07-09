@@ -168,7 +168,7 @@ class DBTable extends React.Component {
     // 对于错误信息, 要很明显的提示用户, 这个通知框要用户手动关闭
     notification.error({
       message: '出错啦!',
-      description: errorMsg,
+      description: `请联系管理员, 错误信息: ${errorMsg}`,
       duration: 0,
     });
     this.setState({tableLoading: false});
