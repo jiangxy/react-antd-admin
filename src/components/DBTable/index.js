@@ -236,13 +236,14 @@ class DBTable extends React.Component {
     // 父组件中的方法都是handleXXX, 子组件中都是onXXX
     return (
       <div>
-        <InnerForm onSubmit={this.handleFormSubmit} schema={this.querySchema} tableConfig={this.tableConfig}/>
+        <InnerForm onSubmit={this.handleFormSubmit} schema={this.querySchema} tableConfig={this.tableConfig}
+                   tableName={this.tableName}/>
         <InnerTable data={this.state.data} tableLoading={this.state.tableLoading}
                     selectedRowKeys={this.state.selectedRowKeys}
                     selectedRows={this.state.selectedRows} schema={this.dataSchema} refresh={this.refresh}
-                    onSelectChange={this.handleSelectChange} tableConfig={this.tableConfig}/>
+                    onSelectChange={this.handleSelectChange} tableConfig={this.tableConfig} tableName={this.tableName}/>
         <InnerPagination currentPage={this.state.currentPage} total={this.state.total} pageSize={this.state.pageSize}
-                         onChange={this.handlePageChange} tableConfig={this.tableConfig}/>
+                         onChange={this.handlePageChange} tableConfig={this.tableConfig} tableName={this.tableName}/>
       </div>
     );
   }

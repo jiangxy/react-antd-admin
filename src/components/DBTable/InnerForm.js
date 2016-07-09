@@ -10,8 +10,12 @@ import {
   Icon,
   Radio,
   InputNumber,
-  Checkbox
+  Checkbox,
+  message,
+  Upload,
+  notification
 } from 'antd';
+import globalConfig from 'config.js';
 
 const FormItem = Form.Item;
 const RadioGroup = Radio.Group;
@@ -265,6 +269,73 @@ class InnerForm extends React.Component {
     this.props.form.resetFields();
   }
 
+  /**
+   * 处理数据导入
+   */
+  handleImport = (info) => {
+    // 正在导入时显示一个提示信息
+    if (info.file.status === 'uploading') {
+      if (!this.hideLoading) {
+        let hide = message.loading('正在导入...');
+        this.hideLoading = hide;
+      }
+    }
+    // 导入完成, 无论成功或失败, 必须给出提示, 并且要用户手动关闭
+    else if (info.file.status === 'error') {
+      this.hideLoading();
+      this.hideLoading = undefined;
+      notification.error({
+        message: '导入失败',
+        description: '文件上传失败, 请联系管理员',
+        duration: 0,
+      });
+    }
+    // done的情况下还要判断返回值
+    else if (info.file.status === 'done') {
+      this.hideLoading();
+      this.hideLoading = undefined;
+      if (!info.file.response.success) {
+        notification.error({
+          message: '导入失败',
+          description: info.file.response.errorMsg,
+          duration: 0,
+        });
+      } else {
+        notification.success({
+          message: '导入成功',
+          description: info.file.response.data,
+          duration: 0,
+        });
+      }
+    }
+  }
+
+  /**
+   * 处理数据导出
+   * 本质上也是提交表单, 跟handleSubmit有点类似
+   * 但不用再提交给上层组件处理了, 因为不需要改变表格组件的状态
+   */
+  handleExport = (e) => {
+    e.preventDefault();
+    // 将提交的值中undefined的去掉
+    const newObj = {};
+    const oldObj = this.props.form.getFieldsValue();
+    for (const key in oldObj) {
+      if (oldObj[key]) {
+        // 对于js的日期类型, 要转换成字符串再传给后端
+        if (oldObj[key] instanceof Date) {
+          newObj[key] = oldObj[key].format('yyyy-MM-dd HH:mm:ss');
+        } else {
+          newObj[key] = oldObj[key];
+        }
+      }
+    }
+
+    // ajax是不能处理下载请求的, 必须交给浏览器自己去处理
+    const url = `${globalConfig.apiHost}/${globalConfig.apiPath}/${this.props.tableName}/export`;
+    window.open(`${url}?q=${encodeURIComponent(JSON.stringify(newObj))}`);  // 注意url编码
+  }
+
   render() {
     const rows = [];
     let cols = [];
@@ -318,6 +389,14 @@ class InnerForm extends React.Component {
       rows.push(<Row key={rows.length} gutter={16}>{cols}</Row>);
     }
 
+    // 上传相关配置
+    const uploadProps = {
+      name: 'file',
+      action: `${globalConfig.apiHost}/${globalConfig.apiPath}/${this.props.tableName}/import`,
+      showUploadList: false,
+      onChange: this.handleImport,
+    };
+
     // 表单的前面是一堆输入框, 最后一行是按钮
     return (
       <Form horizontal className="ant-advanced-search-form">
@@ -326,8 +405,10 @@ class InnerForm extends React.Component {
           <Col span={12} offset={12} style={{ textAlign: 'right' }}>
             <Button type="primary" onClick={this.handleSubmit}><Icon type="search"/>查询</Button>
             <Button onClick={this.handleReset}><Icon type="cross"/>清除条件</Button>
-            {this.props.tableConfig.showExport ? <Button><Icon type="export"/>导出</Button> : ''}
-            {this.props.tableConfig.showImport ? <Button><Icon type="upload"/>导入</Button> : ''}
+            {this.props.tableConfig.showExport ?
+              <Button onClick={this.handleExport}><Icon type="export"/>导出</Button> : ''}
+            {this.props.tableConfig.showImport ?
+              <Upload {...uploadProps}><Button><Icon type="upload"/>导入</Button></Upload> : ''}
           </Col>
         </Row>
       </Form>
