@@ -1,10 +1,12 @@
 import React from 'react';
-import {message, Icon} from 'antd';
+import {message, notification, Icon} from 'antd';
 import Error from '../Error';
 import InnerForm from './InnerForm.js';
 import InnerTable from './InnerTable.js';
 import InnerPagination from './InnerPagination.js';
 import './index.less';
+import globalConfig from 'config.js';
+import ajax from 'superagent';
 
 /**
  * 操作数据库中的一张表的组件, 又可以分为3个组件: 表单+表格+分页器
@@ -36,25 +38,15 @@ class DBTable extends React.Component {
     total: 0,  // 总共有多少条数据
   }
 
-
-  // ajax请求返回的格式:
-  // 成功: { total:50, data:[] }
-  // 失败: { error: xxx }
-  // 这个不是后端接口直接返回的格式, 要经过一步转换
-
-
   /**
    * 刚进入页面时触发一次查询
    */
   componentDidMount() {
     this.setState({tableLoading: true});
-    this.mockAjax(this.state.queryObj, 1, this.state.pageSize).then((result) => {
+    this.select(this.state.queryObj, 1, this.state.pageSize).then((result) => {
       //message.success('查询成功');
-      this.setState({currentPage: 1, data: result.data, total: result.total, tableLoading: false});
-    }, (result) => {
-      message.error(`'查询失败: '${result.error}`);
-      this.setState({tableLoading: false});
-    });
+      this.setState({currentPage: 1, data: result.data, total: result.totalCount, tableLoading: false});
+    }, this.handleError);
   }
 
   /**
@@ -77,6 +69,8 @@ class DBTable extends React.Component {
       this.errorMsg = '找不到表名, 请检查路由配置';  // 如果没能成功获取schema, 错误信息是什么?
       return;
     }
+
+    this.tableName = tableName;
 
     // 尝试加载querySchema
     try {
@@ -120,20 +114,17 @@ class DBTable extends React.Component {
    */
   handlePageChange = (page) => {
     this.setState({tableLoading: true});
-    this.mockAjax(this.state.queryObj, page, this.state.pageSize).then((result) => {
+    this.select(this.state.queryObj, page, this.state.pageSize).then((result) => {
       //message.success('查询成功');
       this.setState({
         currentPage: page,
         data: result.data,
-        total: result.total,
+        total: result.totalCount,
         tableLoading: false,
         selectedRowKeys: [],
         selectedRows: [],
       });
-    }, (result) => {
-      message.error(`'查询失败: '${result.error}`);
-      this.setState({tableLoading: false});
-    });
+    }, this.handleError);
   }
 
   /**
@@ -144,21 +135,18 @@ class DBTable extends React.Component {
   handleFormSubmit = (queryObj) => {
     this.setState({tableLoading: true});
     // 这时查询条件已经变了, 要从第一页开始查
-    this.mockAjax(queryObj, 1, this.state.pageSize).then((result) => {
+    this.select(queryObj, 1, this.state.pageSize).then((result) => {
       //message.success('查询成功');
       this.setState({
         currentPage: 1,
         data: result.data,
-        total: result.total,
+        total: result.totalCount,
         tableLoading: false,
         queryObj: queryObj,
         selectedRowKeys: [],
         selectedRows: [],
       });
-    }, (result) => {
-      message.error(`'查询失败: '${result.error}`);
-      this.setState({tableLoading: false});
-    });
+    }, this.handleError);
   }
 
   /**
@@ -172,54 +160,65 @@ class DBTable extends React.Component {
   }
 
   /**
+   * 统一处理ajax失败时的回调
+   *
+   * @param errorMsg
+   */
+  handleError = (errorMsg) => {
+    // 对于错误信息, 要很明显的提示用户, 这个通知框要用户手动关闭
+    notification.error({
+      message: '出错啦!',
+      description: errorMsg,
+      duration: 0,
+    });
+    this.setState({tableLoading: false});
+  };
+
+  /**
    * 按当前的查询条件重新查询一次
    */
   refresh = () => {
     this.setState({tableLoading: true});
-    this.mockAjax(this.state.queryObj, this.state.currentPage, this.state.pageSize).then((result) => {
+    this.select(this.state.queryObj, this.state.currentPage, this.state.pageSize).then((result) => {
       //message.success('查询成功');
       this.setState({
         data: result.data,
-        total: result.total,
+        total: result.totalCount,
         tableLoading: false,
         selectedRowKeys: [],
         selectedRows: [],
       });
-    }, (result) => {
-      message.error(`'查询失败: '${result.error}`);
-      this.setState({tableLoading: false});
-    });
+    }, this.handleError);
   }
 
   /**
-   * 模拟ajax请求, 会返回一个promise对象
+   * 向服务端发送select请求, 会返回一个promise对象
    *
    * @param queryObj 包含了form中所有的查询条件, 再加上page和pageSize, 后端就能拼成完整的sql
    * @param page
    * @param pageSize
    * @returns {Promise}
    */
-  mockAjax(queryObj, page, pageSize) {
+  select(queryObj, page, pageSize) {
     const hide = message.loading('正在查询...', 0);
-    const promise = new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const result = {};
-        const xdata = [];
-        for (let i = 0; i < pageSize; i++) {
-          xdata.push({
-            id: 10000 + i,
-            name: queryObj.name,
-            score: 90 + page,
-            gpa: 4.5 + page * 0.01,
-            birthday: '2000-01-01 11:00:00',
-          });
-        }
+    // superagent请求会直接返回一个promise对象, 但不能直接用, 还是要包装一层
+    const tmpObj = Object.assign({}, queryObj);  // 创建一个新的临时对象, 其实直接修改queryObj也可以
+    tmpObj.page = page;
+    tmpObj.pageSize = pageSize;
+    const url = `${globalConfig.apiHost}/${globalConfig.apiPath}/${this.tableName}/select`;  // 拼接要请求的url地址
+    //console.log(`querying ${url}`);
 
-        result.total = 500 + page;
-        result.data = xdata;
+    const promise = new Promise((resolve, reject) => {
+      ajax.post(url).send(tmpObj).end((err, res) => {
         hide();
-        resolve(result);
-      }, 800);
+        // err就是一个字符串
+        // res是一个Response对象, 其中的body字段才是服务端真正返回的数据
+        if (err || !res.body.success) {
+          reject(err ? '请求select接口出错, 请联系管理员' : res.body.errorMsg);
+        } else {
+          resolve(res.body);
+        }
+      });
     });
 
     return promise;

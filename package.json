@@ -34,7 +34,9 @@
     "webpack": "^1.12.12",
     "webpack-dev-server": "^1.14.1"
   },
-  "dependencies": {},
+  "dependencies": {
+    "superagent": "^2.0.0"
+  },
   "scripts": {
     "build": "webpack --progress --colors",
     "clean": "rm dist/bundle.js",
