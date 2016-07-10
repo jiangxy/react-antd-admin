@@ -5,7 +5,7 @@
 - [ ] 侧边栏折叠
 - [ ] 侧边栏只能展开一级菜单
 - [x] 升级antd解决hover的bug
-- [ ] 完善logo组件样式
+- [x] 完善logo组件样式
 
 ### header
 
@@ -20,8 +20,7 @@
 - [x] logo和footer可以做成全局配置
 - [ ] 引入redux
 - [ ] 用户手册
-- [ ] 增加日志用于debug
-- [ ] InputNumber组件报的warning
+- [x] InputNumber组件报的warning - 不知是那个组件的版本有问题
 - [ ] antd升级1.6.3后输入不流畅
 
 ### DBTable
