@@ -25,6 +25,7 @@
     "less": "^2.7.1",
     "less-loader": "^2.2.3",
     "react": "^15.0.2",
+    "react-cookie": "^0.4.7",
     "react-dom": "^15.0.2",
     "react-router": "^2.0.1",
     "style-loader": "^0.13.1",

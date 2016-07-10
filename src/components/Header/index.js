@@ -15,14 +15,10 @@ class Header extends React.Component {
         {/*定义header中的菜单*/}
         <Menu className="header-menu" mode="horizontal">
           <SubMenu title={<span><Icon type="user" />{this.props.userName}</span>}>
-            <Menu.Item key="setting:1">选项1</Menu.Item>
-            <Menu.Item key="setting:2">选项2</Menu.Item>
-            <Menu.Divider />
-            <Menu.Item key="setting:3">注销</Menu.Item>
+            <Menu.Item key="logout">
+              <a href="/sso/logout">注销</a>
+            </Menu.Item>
           </SubMenu>
-          <Menu.Item key="mail">
-            <Icon type="question-circle-o"/>帮助
-          </Menu.Item>
         </Menu>
       </div>
     );

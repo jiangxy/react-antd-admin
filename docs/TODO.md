@@ -9,8 +9,8 @@
 
 ### header
 
-- [ ] 接入wdren
-- [ ] 精简header
+- [x] 接入wdren
+- [x] 精简header
 - [ ] 自定义菜单
 
 ### 整体
@@ -30,7 +30,7 @@
 - [ ] 数据校验
 - [ ] 根据schema自动生成VO和controller
 - [ ] 图形化生成schema
-- [ ] 导入/导出
+- [x] 导入/导出
 - [x] DBTable组件可配置
 - [x] 单条update时, 将原始数据填入modal
 - [ ] dataSchema支持showType
