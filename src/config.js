@@ -3,7 +3,7 @@
  */
 
 module.exports = {
-  name: 'xxx管理后台',  // 项目的名字
+  name: 'XX管理后台',  // 项目的名字
   footer: 'xxx版权所有 © 2015-2099',  // footer中显示的字
 
   apiHost: 'http://localhost:8088',  // 调用ajax接口的地址, 默认值空, 如果是跨域的, 服务端要支持CORS
