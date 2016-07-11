@@ -16,7 +16,28 @@ class DBTable extends React.Component {
   constructor(props) {
     super(props);
     // 这必须是个同步操作
-    this.tryFetchSchema();
+    this.tryFetchSchema(this.props);
+  }
+
+  // 真是太恶心了啊...
+  // 在react router中切换时, 组件不会重新mount, 只有props会变化
+  // 所有要手动搞定所有状态...
+  // 当初设计状态时就有问题啊, 对react不熟埋下的坑
+  componentWillReceiveProps = (nextProps) => {
+    this.tryFetchSchema(nextProps);  // 根据新的props重新获取配置
+    // 所有状态都要手动还原到初始值
+    this.setState({
+      queryObj: {},
+      data: [],
+      tableLoading: false,
+      selectedRowKeys: [],
+      selectedRows: [],
+      currentPage: 1,
+      pageSize: 50,
+      total: 0,
+    });
+    this.render();  // componentWillReceiveProps内setState不会触发render, 所以要手动调用
+    this.componentDidMount();  // 进入页面时查询
   }
 
   // 单向数据流的情况下, 父组件要保存子组件的所有状态...非常蛋疼...
@@ -56,8 +77,8 @@ class DBTable extends React.Component {
    * @param dbName
    * @param tableName
    */
-  tryFetchSchema() {
-    const routes = this.props.routes;
+  tryFetchSchema(props) {
+    const routes = props.routes;
     // 这个tableName是路由表配置中传过来的
     // 可以用这个方法向组件传值
     const tableName = routes.pop().tableName;

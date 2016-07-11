@@ -26,30 +26,6 @@ const ButtonGroup = Button.Group;
  */
 class InnerTable extends React.Component {
 
-  constructor(props) {
-    super(props);
-    // 在组件初始化的时候解析一次schema, 不用每次render都解析
-    // 解析schema, 转换成antd需要的格式
-    const newCols = [];
-    this.props.schema.forEach((field) => {
-      const col = {};
-      col.key = field.key;
-      col.dataIndex = field.key;
-      col.title = field.title;
-      if (field.render) {
-        col.render = field.render;
-      }
-      newCols.push(col);
-      // 当前列是否是主键?
-      if (field.primary) {
-        this.primaryKey = field.key;
-        this.primaryKeyType = field.dataType;
-      }
-    });
-
-    this.columns = newCols;
-  }
-
   // 很多时候都要在antd的组件上再包一层
   state = {
     modalVisible: false,  // modal是否可见
@@ -301,6 +277,26 @@ class InnerTable extends React.Component {
   }
 
   render() {
+
+    // 在组件初始化的时候解析一次schema, 不用每次render都解析
+    // 解析schema, 转换成antd需要的格式
+    const newCols = [];
+    this.props.schema.forEach((field) => {
+      const col = {};
+      col.key = field.key;
+      col.dataIndex = field.key;
+      col.title = field.title;
+      if (field.render) {
+        col.render = field.render;
+      }
+      newCols.push(col);
+      // 当前列是否是主键?
+      if (field.primary) {
+        this.primaryKey = field.key;
+        this.primaryKeyType = field.dataType;
+      }
+    });
+
     // 对数据也要处理一下
     // 每行数据都必须有个key属性, 如果指定了主键, 就以主键为key
     // 否则直接用个自增数字做key
@@ -357,7 +353,7 @@ class InnerTable extends React.Component {
           </Modal>
         </div>
 
-        <Table rowSelection={rowSelection} columns={this.columns} dataSource={newData} pagination={false}
+        <Table rowSelection={rowSelection} columns={newCols} dataSource={newData} pagination={false}
                loading={this.props.tableLoading}/>
       </div>
     );
