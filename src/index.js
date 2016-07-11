@@ -24,7 +24,7 @@ const routes = (
 
       <Route path="index">
         <Route path="option1" tableName="test" component={DBTable}/>
-        <Route path="option2" component={Hello}/>
+        <Route path="option2" tableName="testSms" component={DBTable}/>
         <Route path="option3" component={Hello}/>
       </Route>
 

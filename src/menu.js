@@ -16,11 +16,11 @@ module.exports = [
     child: [
       {
         key: 'option1',
-        name: '选项1',
+        name: '模拟CRUD',
       },
       {
         key: 'option2',
-        name: '选项2',
+        name: '短信表管理',
       },
       {
         key: 'option3',

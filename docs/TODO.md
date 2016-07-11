@@ -34,4 +34,5 @@
 - [x] 单条update时, 将原始数据填入modal
 - [ ] dataSchema支持showType
 - [ ] dataSchema支持外键约束
+- [ ] modal中的表单增加placeholder
 
