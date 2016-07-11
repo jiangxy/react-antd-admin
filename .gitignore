@@ -11,5 +11,5 @@ node_modules
 npm-debug.log
 
 # other
-dist/bundle.js
+dist/bundle*
 

@@ -40,7 +40,8 @@
   },
   "scripts": {
     "build": "webpack --progress --colors",
-    "clean": "rm dist/bundle.js",
+    "prod": "webpack --progress --colors --config webpack.config.prod.js",
+    "clean": "rm dist/bundle*",
     "dev": "webpack-dev-server --devtool eval --progress --colors --content-base dist --hot --inline",
     "eslint": "eslint --ext .js,.jsx src --fix",
     "stylelint": "stylelint \"src/**/*.css\"",
