@@ -342,7 +342,7 @@ class InnerForm extends React.Component {
 
     // ajax是不能处理下载请求的, 必须交给浏览器自己去处理
     // 坏处是我就不知道用户的下载是否成功了
-    const url = `${globalConfig.apiHost}/${globalConfig.apiPath}/${this.props.tableName}/export`;
+    const url = `${globalConfig.apiHost}${globalConfig.apiPath}/${this.props.tableName}/export`;
     window.open(`${url}?q=${encodeURIComponent(JSON.stringify(newObj))}`);  // 注意url编码
   }
 

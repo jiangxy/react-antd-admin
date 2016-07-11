@@ -142,7 +142,7 @@ class InnerTable extends React.Component {
    * 真正去处理新增数据
    */
   handleInsert = (obj) => {
-    const url = `${globalConfig.apiHost}/${globalConfig.apiPath}/${this.props.tableName}/insert`;
+    const url = `${globalConfig.apiHost}${globalConfig.apiPath}/${this.props.tableName}/insert`;
     const hide = message.loading('正在新增...', 0);
 
     ajax.post(url).send(obj).end((err, res) => {
@@ -170,7 +170,7 @@ class InnerTable extends React.Component {
    */
   handleUpdate = (obj) => {
     const keys = obj[this.primaryKey];
-    const url = `${globalConfig.apiHost}/${globalConfig.apiPath}/${this.props.tableName}/update?keys=${keys instanceof Array ? keys.join(',') : keys}`;
+    const url = `${globalConfig.apiHost}${globalConfig.apiPath}/${this.props.tableName}/update?keys=${keys instanceof Array ? keys.join(',') : keys}`;
     const hide = message.loading('正在更新...', 0);
     obj[this.primaryKey] = undefined;
 
@@ -200,7 +200,7 @@ class InnerTable extends React.Component {
    * 真正去删除数据
    */
   handleDelete = () => {
-    const url = `${globalConfig.apiHost}/${globalConfig.apiPath}/${this.props.tableName}/delete?keys=${this.props.selectedRowKeys.join(',')}`;
+    const url = `${globalConfig.apiHost}${globalConfig.apiPath}/${this.props.tableName}/delete?keys=${this.props.selectedRowKeys.join(',')}`;
     const hide = message.loading('正在删除...', 0);
 
     ajax.post(url).end((err, res) => {

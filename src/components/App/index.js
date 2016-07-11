@@ -18,7 +18,8 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     // 在组件刚初始化的时候验证登录
-    const url = `${globalConfig.apiHost}/${globalConfig.apiPath}/${globalConfig.loginValidate}`;
+    const url = `${globalConfig.apiHost}${globalConfig.apiPath}/${globalConfig.loginValidate}`;
+    console.log(url);
     ajax.get(url).end((err, res) => {
       if (res && res.body && res.body.success) {
         this.setState({loading: false, login: true, userName: res.body.data});

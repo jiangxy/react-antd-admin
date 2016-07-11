@@ -226,7 +226,7 @@ class DBTable extends React.Component {
     const tmpObj = Object.assign({}, queryObj);  // 创建一个新的临时对象, 其实直接修改queryObj也可以
     tmpObj.page = page;
     tmpObj.pageSize = pageSize;
-    const url = `${globalConfig.apiHost}/${globalConfig.apiPath}/${this.tableName}/select`;  // 拼接要请求的url地址
+    const url = `${globalConfig.apiHost}${globalConfig.apiPath}/${this.tableName}/select`;  // 拼接要请求的url地址
     //console.log(`querying ${url}`);
 
     const promise = new Promise((resolve, reject) => {
