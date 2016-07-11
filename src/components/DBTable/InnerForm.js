@@ -402,7 +402,7 @@ class InnerForm extends React.Component {
     // 上传相关配置
     const uploadProps = {
       name: 'file',
-      action: `${globalConfig.apiHost}/${globalConfig.apiPath}/${this.props.tableName}/import`,
+      action: `${globalConfig.apiHost}${globalConfig.apiPath}/${this.props.tableName}/import`,
       showUploadList: false,
       onChange: this.handleImport,
     };
