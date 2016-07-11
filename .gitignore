@@ -12,4 +12,5 @@ npm-debug.log
 
 # other
 dist/bundle*
+java/**/*.java
 

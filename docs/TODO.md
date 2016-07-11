@@ -22,6 +22,7 @@
 - [ ] 用户手册
 - [x] InputNumber组件报的warning - 不知是那个组件的版本有问题
 - [ ] antd升级1.6.3后输入不流畅
+- [ ] 确认使用了生产换的React
 
 ### DBTable
 
