@@ -11,6 +11,7 @@ node_modules
 npm-debug.log
 
 # other
-dist/bundle*
-java/**/*.java
+dist/
+!dist/*.html
 
+java/**/*.java
