@@ -1,12 +1,19 @@
 {
-  "name": "react-hello-world",
-  "version": "0.0.1",
-  "description": "React Project Boilerplate, with React + Babel + Webpack",
-  "author": "jiangxiyang",
+  "name": "react-antd-admin",
+  "version": "1.0.0",
+  "description": "React Admin Boilerplate, with React + Ant Design",
+  "author": "jiangxy <foolbeargm@gmail.com>",
+  "license": "Apache-2.0",
   "engines": {
     "node": ">=5.0 <7",
     "npm": ">=3.3 <4"
   },
+  "keywords": [
+    "ant",
+    "react",
+    "admin",
+    "frontend"
+  ],
   "devDependencies": {
     "antd": "1.6.3",
     "babel-core": "6.4.5",
@@ -24,6 +31,7 @@
     "file-loader": "0.9.0",
     "less": "2.7.1",
     "less-loader": "2.2.3",
+    "lesshint": "2.0.2",
     "react": "15.0.2",
     "react-cookie": "0.4.7",
     "react-dom": "15.0.2",
@@ -43,8 +51,8 @@
     "prod": "NODE_ENV=production webpack --progress --colors --config webpack.config.prod.js",
     "clean": "rm dist/bundle*",
     "dev": "webpack-dev-server --devtool eval --progress --colors --content-base dist --hot --inline",
-    "eslint": "eslint --ext .js,.jsx src --fix",
+    "eslint": "eslint --ext .js,.jsx src",
     "stylelint": "stylelint \"src/**/*.css\"",
-    "lint": "npm run eslint && npm run stylelint"
+    "lesshint": "lesshint src/"
   }
 }
