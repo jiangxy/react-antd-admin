@@ -47,10 +47,10 @@
     "superagent": "2.0.0"
   },
   "scripts": {
-    "build": "webpack --progress --colors",
-    "prod": "NODE_ENV=production webpack --progress --colors --config webpack.config.prod.js",
+    "build": "webpack --progress --colors --display-error-details",
+    "prod": "NODE_ENV=production webpack --progress --colors --config webpack.config.prod.js -p",
     "clean": "rm dist/bundle*",
-    "dev": "webpack-dev-server --devtool eval --progress --colors --content-base dist --hot --inline",
+    "dev": "webpack-dev-server --devtool eval --progress --colors --content-base dist --hot --inline --display-error-details",
     "eslint": "eslint --ext .js,.jsx src",
     "stylelint": "stylelint \"src/**/*.css\"",
     "lesshint": "lesshint src/"
