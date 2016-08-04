@@ -41,14 +41,20 @@ module.exports = {
   },
 
   plugins: [
+    // 代码压缩
     new webpack.optimize.UglifyJsPlugin({
       minimize: true,
       compress: {warnings: false},
     }),
 
+    // 抽离公共部分
+    // webpack.optimize.CommonsChunkPlugin
+
     new webpack.optimize.DedupePlugin(),
+    // 比对id的使用频率和分布来得出最短的id分配给使用频率高的模块
     new webpack.optimize.OccurenceOrderPlugin(),
     new webpack.optimize.AggressiveMergingPlugin(),
+    // 允许错误不打断程序
     new webpack.NoErrorsPlugin(),
 
     new webpack.DefinePlugin({
