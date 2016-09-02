@@ -139,7 +139,7 @@ const send = (obj) => {
   if (currentUrl === `${globalConfig.getAPIPath()}${globalConfig.login.validate}`) {
     // 验证登录的用户名和密码
     if (obj.username === 'guest' && obj.password === 'guest') {
-      successResult('data');
+      successResult('guest');
     } else {
       errorResult(300, 'error username or password');
     }
@@ -163,8 +163,17 @@ const post = (url) => {
   return {send, type};
 };
 
+// 一个辅助的方法, superagent判断返回是否成功太麻烦了啊...要判断3个条件
+const isSuccess = (res) => {
+  if (res && res.body && res.body.success) {
+    return true;
+  } else {
+    return false;
+  }
+};
+
 // mock的版本只提供简单的API, 以后可能要扩展
-const mockAjax = {get, post};
+const mockAjax = {get, post, isSuccess};
 
 // 对superagent的API简单包装下
 const realAjax = {
@@ -189,6 +198,8 @@ const realAjax = {
     }
     return tmp;
   },
+
+  isSuccess,
 };
 
 if (globalConfig.debug === true) {
