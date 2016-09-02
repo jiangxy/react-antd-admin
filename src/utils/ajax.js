@@ -140,7 +140,7 @@ const realAjax = {
     }
     return tmp;
   },
-}
+};
 
 if (globalConfig.debug === true) {
   module.exports = mockAjax;
