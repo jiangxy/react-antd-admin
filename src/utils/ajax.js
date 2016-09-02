@@ -13,14 +13,30 @@ import globalConfig from '../config';
 
 const logger = Logger.getLogger('mockAjax');
 
-let currentTable;  // 一个临时变量
+let currentUrl;  // 一个临时变量, 当前正在请求的url
 const error = {};  // 理论上服务端不会返回error, 都是HTTP200
-const result = {  // 暂存mock的ajax返回
+const result = {  // 暂存mock的ajax返回, 总共有5个字段
   success: true,
   code: 0,
   message: 'just a mock ;) ',
   total: 10000,
-  data: {mock: true},
+  data: {},
+};
+
+const successResult = (data) => {
+  result.success = true;
+  result.data = data;
+  result.code = 0;
+  result.message = '';
+  result.total = 10000;
+};
+
+const errorResult = (code, message) => {
+  result.success = false;
+  result.data = {};
+  result.code = code;
+  result.message = message;
+  result.total = 0;
 };
 
 // 从url中取出表名
@@ -52,8 +68,10 @@ const mockResult = (tableName, queryObj) => {
     schema = require(`../schema/${tableName}.dataSchema.js`);
   } catch (e) {
     logger.error('can not find dataSchema file for table %s', tableName);
-    logger.error('%o', e);  // 这个方式有点不爽...但是如果不设置pattern, 就不能用特定样式了, 纠结...
-    result.data = {mock: true};
+    logger.error('%o', e);  // 这个方式有点不爽...但是如果不设置pattern, 就不能用样式了, 纠结...
+    // 设置返回结果为失败
+    errorResult(100, `can not find dataSchema file for table ${tableName}`);
+
     return;
   }
 
@@ -68,6 +86,7 @@ const mockResult = (tableName, queryObj) => {
   const tmp = [];
   for (let i = 0; i < queryObj.pageSize; i++) {
     const record = {};
+    // 为了让mock的数据有些区别, 把page算进去
     schema.forEach((column)=> {
       if (column.dataType === 'int') {
         record[column.key] = 10000 * queryObj.page + i;
@@ -84,8 +103,10 @@ const mockResult = (tableName, queryObj) => {
     tmp.push(record);
   }
 
-  result.data = tmp;
+  successResult(tmp);
 };
+
+// 开始mock supergent的各个方法
 
 const end = (func) => {
   // 模拟一个延时
@@ -93,25 +114,53 @@ const end = (func) => {
   setTimeout(func, 3000, error, {body: result});  // 延时执行func函数, 参数跟在最后
 };
 
-const send = (obj) => {
-  logger.debug('send obj: %o', obj);
-  mockResult(currentTable, obj);
+const get = (url) => {
+  logger.debug('get url %s', url);
+  currentUrl = url;
+
+  // TODO: 要根据url返回不同的数据, 这里设置各种get的url
+  if (url === `${globalConfig.getAPIPath()}${globalConfig.login.getCurrentUser}`)
+    successResult('guest');  // debug模式下都是guest用户
+  else
+    errorResult(200, `unsupported url ${url}`);
+
   return {end};
 };
 
-const get = (url) => {
-  // get操作不用从url中提取表名, 直接返回就好了
-  logger.debug('get url %s', url);
+const type = (str) => {
+  logger.debug('set type = %s', str);
+  return {send};
+};
 
-  // TODO: 要根据不同的url返回不同的数据
-  result.data = {mock: true};
+const send = (obj) => {
+  logger.debug('send obj: %o', obj);
+
+  // TODO: 要根据url返回不同的数据, 这里设置各种post的url
+  if (currentUrl === `${globalConfig.getAPIPath()}${globalConfig.login.validate}`) {
+    // 验证登录的用户名和密码
+    if (obj.username === 'guest' && obj.password === 'guest') {
+      successResult('data');
+    } else {
+      errorResult(300, 'error username or password');
+    }
+  } else {
+    // 如果不是登录请求, 目前只能是CRUD请求, 当然以后可能会扩展
+    const tableName = getTableNameFromUrl(currentUrl);
+    if (tableName) {
+      mockResult(tableName, obj);
+    } else {
+      errorResult(400, `unsupported url ${currentUrl}`);
+    }
+  }
+
   return {end};
 };
 
 const post = (url) => {
   logger.debug('post url %s', url);
-  currentTable = getTableNameFromUrl(url);
-  return {send};
+  currentUrl = url;
+
+  return {send, type};
 };
 
 // mock的版本只提供简单的API, 以后可能要扩展
