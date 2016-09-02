@@ -12,7 +12,7 @@
  */
 Date.prototype.format = function (fmt) {
   var o = {
-    "M+": this.getMonth() + 1, //月份         
+    "M+": this.getMonth() + 1, //月份
     "d+": this.getDate(), //日
     "h+": this.getHours() % 12 == 0 ? 12 : this.getHours() % 12, //小时
     "H+": this.getHours(), //小时
@@ -42,4 +42,15 @@ Date.prototype.format = function (fmt) {
     }
   }
   return fmt;
-}
+};
+
+/**
+ * 在当前日期的基础上再增加几天
+ *
+ * @param num 要增加的天数
+ */
+Date.prototype.plusDays = function (num) {
+  var tmp = new Date();
+  tmp.setDate(this.getDate() + num);
+  return tmp;
+};
