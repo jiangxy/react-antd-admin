@@ -2,10 +2,13 @@ import React from 'react';
 import {Link} from 'react-router';
 import {Menu, Icon} from 'antd';
 import Logo from '../Logo';
+import Logger from '../../utils/Logger';
 import items from 'menu.js';  // 由于webpack中的设置, 不用写完整路径
 
 const SubMenu = Menu.SubMenu;
 const MenuItem = Menu.Item;
+
+const logger = Logger.getLogger('Sidebar');
 
 /**
  * 定义sidebar组件
@@ -21,6 +24,7 @@ class Sidebar extends React.Component {
    */
   transFormMenuItem(obj, paths) {
     const parentPath = paths.join('/');   // 将各级父目录组合成完整的路径
+    logger.debug('transform %o to path %s', obj, parentPath);
 
     // 这个表达式还是有点恶心的...
     // JSX虽然方便, 但是很容易被滥用, ES6也是
@@ -31,11 +35,13 @@ class Sidebar extends React.Component {
     );
   }
 
-  render() {
+  // 在每次组件挂载的时候parse一次菜单, 不用每次render都解析
+  componentWillMount() {
     const paths = [];  // 暂存各级路径, 当作stack用
     const defaultOpenKeys = [];
 
     // 菜单项是从配置中读取的, parse过程还是有点复杂的
+    // map函数很好用
     const menu = items.map((level1) => {
       // parse一级菜单
       paths.push(level1.key);
@@ -86,12 +92,17 @@ class Sidebar extends React.Component {
       }
     });
 
+    this.menu = menu;
+    this.defaultOpenKeys = defaultOpenKeys;
+  }
+
+  render() {
     // 这些样式其实是在App/index.less中定义的
     return (
       <aside className="ant-layout-sider">
         <Logo />
-        <Menu theme="dark" mode="inline" defaultOpenKeys={defaultOpenKeys}>
-          {menu}
+        <Menu theme="dark" mode="inline" defaultOpenKeys={this.defaultOpenKeys}>
+          {this.menu}
         </Menu>
       </aside>
     );

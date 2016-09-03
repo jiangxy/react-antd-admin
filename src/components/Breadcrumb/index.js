@@ -1,8 +1,10 @@
 import React from 'react';
 import {Breadcrumb, Icon} from 'antd';
 import items from 'menu.js';
+import Logger from '../../utils/Logger';
 
 const Item = Breadcrumb.Item;
+const logger = Logger.getLogger('Breadcrumb');
 
 /**
  * 定义面包屑导航, 由于和已有的组件重名, 所以改个类名
@@ -18,13 +20,19 @@ class Bread extends React.Component {
     // 箭头函数还是很好用的
     items.forEach((level1) => {
       Bread.nameMap.set(level1.key, level1.name);
+      logger.debug('nameMap add entry: key=%s, value=%s', level1.key, level1.name);
       Bread.iconMap.set(level1.key, level1.icon);
+      logger.debug('iconMap add entry: key=%s, value=%s', level1.key, level1.icon);
+
       if (level1.child) {
         level1.child.forEach((level2) => {
           Bread.nameMap.set(level2.key, level2.name);
+          logger.debug('nameMap add entry: key=%s, value=%s', level2.key, level2.name);
+
           if (level2.child) {
             level2.child.forEach((level3)=> {
               Bread.nameMap.set(level3.key, level3.name);
+              logger.debug('nameMap add entry: key=%s, value=%s', level3.key, level3.name);
             });
           }
         });
@@ -35,6 +43,7 @@ class Bread extends React.Component {
   render() {
     // render之前判断是否要初始化
     if (!Bread.inited) {
+      logger.debug('not inited, calling init method');
       Bread.init();
       Bread.inited = true;
     }
@@ -45,7 +54,9 @@ class Bread extends React.Component {
     itemArray.push(<Item key="systemHome" href="#"><Icon type="home"/></Item>);
 
     for (const route of this.props.routes) {
+      logger.debug('path=%s, route=%o', route.path, route);
       const name = Bread.nameMap.get(route.path);
+
       if (name) {
         const icon = Bread.iconMap.get(route.path);
         if (icon) {

@@ -7,9 +7,9 @@ import './index.less';
 class Hello extends React.Component {
 
   render() {
-    return <div><h1 className="testStyle">Hello, world</h1></div>;
+    return <div><h1 className="testStyle">Hello, React!</h1></div>;
   }
-  
+
 }
 
 export default Hello;

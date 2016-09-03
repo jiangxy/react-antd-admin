@@ -1,5 +1,6 @@
 import React from 'react';
 import {Icon, Menu, Dropdown} from 'antd';
+import globalConfig from 'config';
 import './index.less';
 
 const SubMenu = Menu.SubMenu;  // 为了使用方便
@@ -16,7 +17,7 @@ class Header extends React.Component {
         <Menu className="header-menu" mode="horizontal">
           <SubMenu title={<span><Icon type="user" />{this.props.userName}</span>}>
             <Menu.Item key="logout">
-              <a href="/sso/logout">注销</a>
+              <a href={`${globalConfig.getAPIPath()}${globalConfig.login.logout}`}>注销</a>
             </Menu.Item>
           </SubMenu>
         </Menu>
