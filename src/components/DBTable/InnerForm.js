@@ -16,11 +16,14 @@ import {
   notification
 } from 'antd';
 import globalConfig from 'config.js';
+import Logger from '../../utils/Logger';
 
 const FormItem = Form.Item;
 const RadioGroup = Radio.Group;
 const CheckboxGroup = Checkbox.Group;
 const Option = Select.Option;
+
+const logger = Logger.getLogger('InnerForm');
 
 /**
  * 内部表单组件
@@ -58,6 +61,7 @@ class InnerForm extends React.Component {
     const options = [];
     const {getFieldProps} = this.props.form;
 
+    logger.debug('transform field %o to Select component', field);
     field.options.forEach((option) => {
       options.push(<Option key={option.key} value={option.key}>{option.value}</Option>);
     });
@@ -78,6 +82,7 @@ class InnerForm extends React.Component {
     const options = [];
     const {getFieldProps} = this.props.form;
 
+    logger.debug('transform field %o to Radio component', field);
     field.options.forEach((option) => {
       options.push(<Radio key={option.key} value={option.key}>{option.value}</Radio>);
     });
@@ -98,6 +103,7 @@ class InnerForm extends React.Component {
     const options = [];
     const {getFieldProps} = this.props.form;
 
+    logger.debug('transform field %o to Checkbox component', field);
     field.options.forEach((option) => {
       options.push({label: option.value, value: option.key});
     });
@@ -117,6 +123,7 @@ class InnerForm extends React.Component {
     const options = [];
     const {getFieldProps} = this.props.form;
 
+    logger.debug('transform field %o to MultipleSelect component', field);
     field.options.forEach((option) => {
       options.push(<Option key={option.key} value={option.key}>{option.value}</Option>);
     });
@@ -138,19 +145,23 @@ class InnerForm extends React.Component {
     const {getFieldProps} = this.props.form;
     switch (field.dataType) {
       case 'int':
+        logger.debug('transform field %o to integer input component', field);
         return this.colWrapper((
           <InputNumber size="default" {...getFieldProps(field.key)}/>
         ), field);
       case 'float':
+        logger.debug('transform field %o to float input component', field);
         return this.colWrapper((
           <InputNumber step={0.01} size="default" {...getFieldProps(field.key)}/>
         ), field);
       case 'datetime':
+        logger.debug('transform field %o to datetime input component', field);
         return this.colWrapper((
           <DatePicker showTime format="yyyy-MM-dd HH:mm:ss"
                       placeholder={field.placeholder || '请选择日期'} {...getFieldProps(field.key)}/>
         ), field);
       default:  // 默认就是普通的输入框
+        logger.debug('transform field %o to varchar input component', field);
         return this.colWrapper((
           <Input placeholder={field.placeholder} size="default" {...getFieldProps(field.key)}/>
         ), field);
@@ -202,6 +213,7 @@ class InnerForm extends React.Component {
 
     switch (field.dataType) {
       case 'int':
+        logger.debug('transform field %o to integer BETWEEN component', field);
         beginFormItem = (<InputNumber size="default"
                                       placeholder={field.placeholderBegin || '最小值'} {...getFieldProps(`${field.key}Begin`)}/>);
         endFormItem = (<InputNumber size="default"
@@ -209,6 +221,7 @@ class InnerForm extends React.Component {
         cols.push(this.betweenColWrapper(beginFormItem, endFormItem, field));
         break;
       case 'float':
+        logger.debug('transform field %o to float BETWEEN component', field);
         beginFormItem = (<InputNumber step={0.01} size="default"
                                       placeholder={field.placeholderBegin || '最小值'} {...getFieldProps(`${field.key}Begin`)}/>);
         endFormItem = (<InputNumber step={0.01} size="default"
@@ -218,6 +231,7 @@ class InnerForm extends React.Component {
       // datetime类型的between要占用两个Col
       // 不写辅助函数了, 直接这里写jsx吧...
       case 'datetime':
+        logger.debug('transform field %o to datetime BETWEEN component', field);
         cols.push(
           <Col key={`${field.key}Begin`} sm={8}>
             <FormItem key={`${field.key}Begin`} label={field.title} labelCol={{ span: 10 }} wrapperCol={{ span:14 }}>
@@ -235,21 +249,20 @@ class InnerForm extends React.Component {
         break;
       default:
         // 理论上来说不会出现这种情况
-        console.error(`unknown dataType: ${field.dataType}`);
+        logger.error('unknown dataType: %s', field.dataType);
     }
     return cols;
   }
 
   /**
-   * 处理表单提交
+   * 表单的查询条件不能直接传给后端, 要处理一下
    *
-   * @param e
+   * @param oldObj
+   * @returns {{}}
    */
-  handleSubmit = (e) => {
-    e.preventDefault();
+  filterQueryObj(oldObj) {
     // 将提交的值中undefined的去掉
     const newObj = {};
-    const oldObj = this.props.form.getFieldsValue();
     for (const key in oldObj) {
       if (oldObj[key]) {
         // 对于js的日期类型, 要转换成字符串再传给后端
@@ -260,8 +273,23 @@ class InnerForm extends React.Component {
         }
       }
     }
+    logger.debug('old queryObj: %o, new queryObj %o', oldObj, newObj);
+    return newObj;
+  }
+
+  /**
+   * 处理表单提交
+   *
+   * @param e
+   */
+  handleSubmit = (e) => {
+    e.preventDefault();
+
+    const oldObj = this.props.form.getFieldsValue();
+    const newObj = this.filterQueryObj(oldObj);
+
     // 还是要交给上层组件处理, 因为要触发table组件的状态变化...
-    this.props.onSubmit(newObj);
+    this.props.parentHandleSubmit(newObj);
   }
 
   handleReset = (e) => {
@@ -273,6 +301,7 @@ class InnerForm extends React.Component {
    * 处理数据导入
    */
   handleImport = (info) => {
+    logger.debug('upload status: %s', info.file.status);
     // 正在导入时显示一个提示信息
     if (info.file.status === 'uploading') {
       if (!this.hideLoading) {
@@ -294,10 +323,11 @@ class InnerForm extends React.Component {
     else if (info.file.status === 'done') {
       this.hideLoading();
       this.hideLoading = undefined;
+      logger.debug('upload result %o', info.file.response);
       if (!info.file.response.success) {
         notification.error({
           message: '导入失败',
-          description: `请联系管理员, 错误信息: ${info.file.response.errorMsg}`,
+          description: `请联系管理员, 错误信息: ${info.file.response.message}`,
           duration: 0,
         });
       } else {
@@ -317,32 +347,20 @@ class InnerForm extends React.Component {
    */
   handleExport = (e) => {
     e.preventDefault();
-    // 将提交的值中undefined的去掉
-    const newObj = {};
+
     const oldObj = this.props.form.getFieldsValue();
-    let count = 0;  // newObj中总共有几个属性?
-    for (const key in oldObj) {
-      if (oldObj[key]) {
-        // 对于js的日期类型, 要转换成字符串再传给后端
-        if (oldObj[key] instanceof Date) {
-          newObj[key] = oldObj[key].format('yyyy-MM-dd HH:mm:ss');
-        } else {
-          newObj[key] = oldObj[key];
-        }
-        count++;
-      }
-    }
+    const newObj = this.filterQueryObj(oldObj);
 
     // 导出前必须选定了一些查询条件, 不允许导出全表
     // 防止误操作
-    if (count === 0) {
+    if (Object.keys(newObj).length === 0) {
       message.warning('导出时查询条件不能为空', 4.5);
       return;
     }
 
     // ajax是不能处理下载请求的, 必须交给浏览器自己去处理
     // 坏处是我就不知道用户的下载是否成功了
-    const url = `${globalConfig.apiHost}${globalConfig.apiPath}/${this.props.tableName}/export`;
+    const url = `${globalConfig.getAPIPath()}/${this.props.tableName}/export`;
     window.open(`${url}?q=${encodeURIComponent(JSON.stringify(newObj))}`);  // 注意url编码
   }
 
@@ -391,7 +409,6 @@ class InnerForm extends React.Component {
       }
 
       spaceLeft -= spaceNeed;
-
     });
 
     // 别忘了最后一行
@@ -402,7 +419,7 @@ class InnerForm extends React.Component {
     // 上传相关配置
     const uploadProps = {
       name: 'file',
-      action: `${globalConfig.apiHost}${globalConfig.apiPath}/${this.props.tableName}/import`,
+      action: `${globalConfig.getAPIPath()}/${this.props.tableName}/import`,
       showUploadList: false,
       onChange: this.handleImport,
     };
