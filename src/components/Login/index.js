@@ -37,7 +37,11 @@ class Login extends React.Component {
       logger.debug('login validate return: error %o result %o', err, res);
 
       if (ajax.isSuccess(res)) {
-        message.info(`登录成功, 用户名: ${res.body.data}`);
+        // 如果登录成功, 调用回调函数, 把状态往上层组件传
+        if (this.props.loginSuccess)
+          this.props.loginSuccess(res.body.data);
+        else
+          message.info(`登录成功, 用户名: ${res.body.data}`);
       } else {
         message.error(`登录失败: ${res.body.message}, 请联系管理员`);
         button.removeAttribute('disabled');  // 登录失败的话, 重新让按钮可用, 让用户重新登录
@@ -45,13 +49,20 @@ class Login extends React.Component {
     });
   }
 
+  componentWillUnmount() {
+    logger.debug('unmount and clear styles');
+    // 组件unmount时设置下样式, 不然其他组件的显示会有问题
+    // TODO: 不知道有没有更好的办法
+    document.body.style.background = 'white';
+  }
+
   render() {
     return (
       <div className="login">
         <h1>{globalConfig.name}</h1>
         <form onSubmit={this.handleSubmit}>
-          <input type="text" ref="user" name="u" placeholder="用户名" required="required"/>
-          <input type="password" ref="pass" name="p" placeholder="密码" required="required"/>
+          <input className="login-input" type="text" ref="user" name="u" placeholder="用户名" required="required"/>
+          <input className="login-input" type="password" ref="pass" name="p" placeholder="密码" required="required"/>
           <button ref="button" type="submit" className="btn btn-primary btn-block btn-large">登录</button>
         </form>
       </div>
