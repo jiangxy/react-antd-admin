@@ -25,7 +25,7 @@
   width: 224px;
   background: #404040;
   position: absolute;
-  overflow: visible;
+  overflow: auto;
   padding-bottom: 24px;
   height: 100%;
   transition: all 0.3s ease;
@@ -113,6 +113,7 @@
 .ant-layout-aside .ant-layout-main {
   margin-left: 224px;
   transition: all 0.3s ease;
+  overflow: auto;
 }
 
 .ant-layout-aside-collapse .ant-layout-main {
@@ -138,4 +139,15 @@
   background: #fff;
   border-top: 1px solid #e9e9e9;
   width: 100%;
+}
+
+// 为了在屏幕中间显示一个loading
+.center-div {
+  position: absolute; /*绝对定位*/
+  top: 50%; /* 距顶部50%*/
+  left: 50%; /* 距左边50%*/
+  height: 2px;
+  margin-top: -1px; /*margin-top为height一半的负值*/
+  width: 2px;
+  margin-left: -1px; /*margin-left为width一半的负值*/
 }

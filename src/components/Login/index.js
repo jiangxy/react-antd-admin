@@ -39,7 +39,7 @@ class Login extends React.Component {
       if (ajax.isSuccess(res)) {
         // 如果登录成功, 调用回调函数, 把状态往上层组件传
         if (this.props.loginSuccess)
-          this.props.loginSuccess(res.body.data);
+          this.props.loginSuccess(res.body.data, true);
         else
           message.info(`登录成功, 用户名: ${res.body.data}`);
       } else {
@@ -47,6 +47,11 @@ class Login extends React.Component {
         button.removeAttribute('disabled');  // 登录失败的话, 重新让按钮可用, 让用户重新登录
       }
     });
+  }
+
+  componentWillMount() {
+    logger.debug('mount and add styles');
+    document.body.style.background = null;
   }
 
   componentWillUnmount() {
