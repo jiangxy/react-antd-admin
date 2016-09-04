@@ -16,10 +16,13 @@ import {
   Affix
 } from 'antd';
 import globalConfig from 'config.js';
-import ajax from 'superagent';
+import Logger from '../../utils/Logger';
+import ajax from '../../utils/ajax';
 
 const FormItem = Form.Item;
 const ButtonGroup = Button.Group;
+
+const logger = Logger.getLogger('InnerTable');
 
 /**
  * 内部表格组件
@@ -30,7 +33,37 @@ class InnerTable extends React.Component {
   state = {
     modalVisible: false,  // modal是否可见
     modalTitle: '新增',  // modal标题
-    insert: true,  // 当前modal是用来insert还是update
+    modalInsert: true,  // 当前modal是用来insert还是update
+
+    selectedRowKeys: [],  // 当前有哪些行被选中, 这里只保存key
+    selectedRows: [],  // 当前有哪些行被选中, 保存完整数据
+  };
+
+  /**
+   * InnerTable组件的重render有两种可能:
+   * 1. 上层组件调用的render方法, 这个时候会触发componentWillReceiveProps方法
+   * 2. 自身状态变化引起的重新render
+   * 注意区分
+   *
+   * 对于第一种情况, 要将组件的状态还原到初始状态
+   *
+   * @param nextProps
+   */
+  componentWillReceiveProps = (nextProps) => {
+    logger.debug('receive new props and try to render, nextProps=%o', nextProps);
+    // 其实传入的props和当前的props可能是一样的, 这个方法不会判断修改才触发
+    // 要自己判断props是否有变化, 不过对InnerTable组件就不用了
+
+    // 所有状态都要手动还原到初始值
+    // 这个方法里setState不会触发render
+    this.setState({
+      modalVisible: false,
+      modalTitle: '新增',
+      modalInsert: true,
+
+      selectedRowKeys: [],
+      selectedRows: [],
+    });
   }
 
   /**
@@ -41,7 +74,7 @@ class InnerTable extends React.Component {
   onClickInsert = (e) => {
     e.preventDefault();
     this.props.form.resetFields();
-    this.setState({modalVisible: true, modalTitle: '新增', insert: true});
+    this.setState({modalVisible: true, modalTitle: '新增', modalInsert: true});
   }
 
   /**
@@ -53,21 +86,23 @@ class InnerTable extends React.Component {
   onClickUpdate = (e) => {
     e.preventDefault();
     this.props.form.resetFields();
-    const multiSelected = this.props.selectedRowKeys.length > 1;  // 是否选择了多项
+    const multiSelected = this.state.selectedRowKeys.length > 1;  // 是否选择了多项
     // 如果只选择了一项, 就把原来的值填到表单里
     // 否则就只把要更新的主键填到表单里
     if (!multiSelected) {
-      this.props.form.setFieldsValue(this.props.selectedRows.pop());
+      logger.debug('update single record, and fill original values');
+      this.props.form.setFieldsValue(this.state.selectedRows.pop());  // FIXME: 理论上来说不应该这样去修改state中的值
     } else {
       const tmpObj = {};
-      tmpObj[this.primaryKey] = this.props.selectedRowKeys.join(', ');
+      tmpObj[this.primaryKey] = this.state.selectedRowKeys.join(', ');
+      logger.debug('update multiple records, keys = %s', tmpObj[this.primaryKey]);
       this.props.form.setFieldsValue(tmpObj);
     }
 
     if (multiSelected) {
-      this.setState({modalVisible: true, modalTitle: '批量更新', insert: false});
+      this.setState({modalVisible: true, modalTitle: '批量更新', modalInsert: false});
     } else {
-      this.setState({modalVisible: true, modalTitle: '更新', insert: false});
+      this.setState({modalVisible: true, modalTitle: '更新', modalInsert: false});
     }
   }
 
@@ -80,13 +115,11 @@ class InnerTable extends React.Component {
   onClickDelete = (e) => {
     e.preventDefault();
     Modal.confirm({
-      title: this.props.selectedRowKeys.length > 1 ? '确认批量删除' : '确认删除',
-      content: `当前被选中的行: ${this.props.selectedRowKeys.join(', ')}`,
+      title: this.state.selectedRowKeys.length > 1 ? '确认批量删除' : '确认删除',
+      content: `当前被选中的行: ${this.state.selectedRowKeys.join(', ')}`,
       // 这里注意要用箭头函数, 否则this不生效
       onOk: () => {
         this.handleDelete();
-      },
-      onCancel: () => {
       },
     });
   }
@@ -101,7 +134,7 @@ class InnerTable extends React.Component {
   /**
    * 点击modal中确认按钮的回调
    */
-  handleOk = () => {
+  handleModalOk = () => {
     // 将表单中的undefined去掉
     // 表单传过来的主键是逗号分隔的字符串, 这里转换成数组
     const newObj = {};
@@ -112,7 +145,6 @@ class InnerTable extends React.Component {
         continue;
 
       if (key === this.primaryKey && typeof oldObj[key] === 'string') {
-        console.log(`primary key: ${oldObj[key]}`);
         for (const str of oldObj[key].split(', ')) {
           // 按schema中的约定, 主键只能是int/varchar
           if (this.primaryKeyType === 'int') {
@@ -129,30 +161,36 @@ class InnerTable extends React.Component {
       newObj[this.primaryKey] = primaryKeyArray;
     }
     this.hideModal();
-    console.log(newObj);
+    logger.debug('click modal OK and the form obj = %o', newObj);
 
-    if (this.state.insert) {
+    if (this.state.modalInsert) {
       this.handleInsert(newObj);
     } else {
       this.handleUpdate(newObj);
     }
   }
 
+
+  /*下面开始才是真正的数据库操作*/
+
+
   /**
    * 真正去处理新增数据
    */
   handleInsert = (obj) => {
-    const url = `${globalConfig.apiHost}${globalConfig.apiPath}/${this.props.tableName}/insert`;
+    const url = `${globalConfig.getAPIPath()}/${this.props.tableName}/insert`;
     const hide = message.loading('正在新增...', 0);
+    logger.debug('handleInsert: url = %s, obj = %o', url, obj);
 
     ajax.post(url).send(obj).end((err, res) => {
       hide();
+      logger.debug('handleInsert: return error = %o, res = %o', err, res);
       // err就是一个字符串
       // res是一个Response对象, 其中的body字段才是服务端真正返回的数据
       if (err || !res.body.success) {
         notification.error({
           message: '新增失败',
-          description: err ? '请求insert接口出错, 请联系管理员' : `请联系管理员, 错误信息: ${res.body.errorMsg}`,
+          description: err ? '请求insert接口出错, 请联系管理员' : `请联系管理员, 错误信息: ${res.body.message}`,
           duration: 0,
         });
       } else {
@@ -170,24 +208,26 @@ class InnerTable extends React.Component {
    */
   handleUpdate = (obj) => {
     const keys = obj[this.primaryKey];
-    const url = `${globalConfig.apiHost}${globalConfig.apiPath}/${this.props.tableName}/update?keys=${keys instanceof Array ? keys.join(',') : keys}`;
+    const url = `${globalConfig.getAPIPath()}/${this.props.tableName}/update?keys=${keys instanceof Array ? keys.join(',') : keys}`;
     const hide = message.loading('正在更新...', 0);
     obj[this.primaryKey] = undefined;
 
+    logger.debug('handleUpdate: url = %s, obj = %o', url, obj);
+
     ajax.post(url).send(obj).end((err, res) => {
       hide();
-      // err就是一个字符串
-      // res是一个Response对象, 其中的body字段才是服务端真正返回的数据
+      logger.debug('handleUpdate: return error = %o, res = %o', err, res);
+
       if (err || !res.body.success) {
         notification.error({
           message: '更新失败',
-          description: err ? '请求update接口出错, 请联系管理员' : `请联系管理员, 错误信息: ${res.body.errorMsg}`,
+          description: err ? '请求update接口出错, 请联系管理员' : `请联系管理员, 错误信息: ${res.body.message}`,
           duration: 0,
         });
       } else {
         notification.success({
           message: '更新成功',
-          description: res.body.data,
+          description: `更新${res.body.data}条数据`,
           duration: 0,
         });
         // 更新数据后, 注意刷新下整个页面
@@ -200,21 +240,23 @@ class InnerTable extends React.Component {
    * 真正去删除数据
    */
   handleDelete = () => {
-    const url = `${globalConfig.apiHost}${globalConfig.apiPath}/${this.props.tableName}/delete?keys=${this.props.selectedRowKeys.join(',')}`;
+    const url = `${globalConfig.getAPIPath()}/${this.props.tableName}/delete?keys=${this.state.selectedRowKeys.join(',')}`;
     const hide = message.loading('正在删除...', 0);
+    logger.debug('handleDelete: url = %s', url);
 
     ajax.post(url).end((err, res) => {
       hide();
+      logger.debug('handleDelete: return error = %o, res = %o', err, res);
       if (err || !res.body.success) {
         notification.error({
           message: '删除失败',
-          description: err ? '请求delete接口出错, 请联系管理员' : `请联系管理员, 错误信息: ${res.body.errorMsg}`,
+          description: err ? '请求delete接口出错, 请联系管理员' : `请联系管理员, 错误信息: ${res.body.message}`,
           duration: 0,
         });
       } else {
         notification.success({
           message: '删除成功',
-          description: res.body.data,
+          description: `删除${res.body.data}条数据`,
           duration: 0,
         });
         // 更新数据后, 注意刷新下整个页面
@@ -249,6 +291,7 @@ class InnerTable extends React.Component {
 
     // 对于主键, 直接返回一个不可编辑的textarea
     if (this.primaryKey === field.key) {
+      logger.debug('key %o is primary, transform to text area', field);
       return this.colWrapper((
         <Input type="textarea" autosize={{ minRows: 1, maxRows: 10 }} disabled
                size="default" {...getFieldProps(field.key)}/>
@@ -257,29 +300,41 @@ class InnerTable extends React.Component {
 
     switch (field.dataType) {
       case 'int':
+        logger.debug('transform field %o to integer input', field);
         return this.colWrapper((
           <InputNumber size="default" {...getFieldProps(field.key)}/>
         ), field);
       case 'float':
+        logger.debug('transform field %o to float input', field);
         return this.colWrapper((
           <InputNumber step={0.01} size="default" {...getFieldProps(field.key)}/>
         ), field);
       case 'datetime':
+        logger.debug('transform field %o to datetime input', field);
         return this.colWrapper((
           <DatePicker showTime format="yyyy-MM-dd HH:mm:ss"
                       placeholder={field.placeholder || '请选择日期'} {...getFieldProps(field.key)}/>
         ), field);
       default:  // 默认就是普通的输入框
+        logger.debug('transform field %o to varchar input', field);
         return this.colWrapper((
           <Input placeholder={field.placeholder} size="default" {...getFieldProps(field.key)}/>
         ), field);
     }
   }
 
-  render() {
+  /**
+   * 处理表格的选择事件
+   *
+   * @param selectedRowKeys
+   * @param selectedRows
+   */
+  handleSelectChange = (selectedRowKeys, selectedRows) => {
+    this.setState({selectedRowKeys, selectedRows});
+  }
 
-    // 在组件初始化的时候解析一次schema, 不用每次render都解析
-    // 解析schema, 转换成antd需要的格式
+  render() {
+    // 解析schema
     const newCols = [];
     this.props.schema.forEach((field) => {
       const col = {};
@@ -319,14 +374,13 @@ class InnerTable extends React.Component {
       formItems.push(this.transFormField(field));
     });
 
-    const {selectedRowKeys, onSelectChange} = this.props;
     const rowSelection = {
-      selectedRowKeys,
-      onChange: onSelectChange,
+      // selectedRowKeys: this.state.selectedRowKeys,  // 其实这里不用传入要选择的key, 只要table组件将状态暴露出来让我知道就可以, 我没必要直接修改它的状态
+      onChange: this.handleSelectChange,
     };
 
-    const hasSelected = selectedRowKeys.length > 0;  // 是否选择
-    const multiSelected = selectedRowKeys.length > 1;  // 是否选择了多项
+    const hasSelected = this.state.selectedRowKeys.length > 0;  // 是否选择
+    const multiSelected = this.state.selectedRowKeys.length > 1;  // 是否选择了多项
 
     return (
       <div>
@@ -345,7 +399,7 @@ class InnerTable extends React.Component {
               </Button>
             </ButtonGroup>
           </Affix>
-          <Modal title={this.state.modalTitle} visible={this.state.modalVisible} onOk={this.handleOk}
+          <Modal title={this.state.modalTitle} visible={this.state.modalVisible} onOk={this.handleModalOk}
                  onCancel={this.hideModal}>
             <Form horizontal>
               {formItems}
