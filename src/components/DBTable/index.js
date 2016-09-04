@@ -112,13 +112,6 @@ class DBTable extends React.Component {
     this.refresh();
   }
 
-  /**
-   * 每次重新render后, 都要触发一次查询
-   */
-  componentDidUpdate() {
-    this.refresh();
-  }
-
   // 在react router中切换时, 组件不会重新mount, 只有props会变化
   componentWillReceiveProps = (nextProps) => {
     logger.debug('receive new props and try to render, nextProps = %o', nextProps);
@@ -132,6 +125,8 @@ class DBTable extends React.Component {
       pageSize: 50,
       total: 0,
     });
+    // 切换时也要重新查询一次数据
+    this.refresh();
   }
 
   /**

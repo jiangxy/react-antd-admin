@@ -52,18 +52,23 @@ class InnerTable extends React.Component {
   componentWillReceiveProps = (nextProps) => {
     logger.debug('receive new props and try to render, nextProps=%o', nextProps);
     // 其实传入的props和当前的props可能是一样的, 这个方法不会判断修改才触发
-    // 要自己判断props是否有变化, 不过对InnerTable组件就不用了
+    // 要自己判断props是否有变化
 
-    // 所有状态都要手动还原到初始值
-    // 这个方法里setState不会触发render
-    this.setState({
-      modalVisible: false,
-      modalTitle: '新增',
-      modalInsert: true,
+    // 蛋疼的是, 要区分是上层组件引起的这个方法调用还是InnerTable组件本身引起的
+    // 本来自身的变化是不应该触发的, 但不知antd的form组件做了什么, 每次给表单设置值的时候就会触发, 我讨厌黑盒...
+    // 利用了一个特性: 如果是上层触发的, tableLoading必定是true
+    if (nextProps.tableLoading === true) {
+      // 所有状态都要手动还原到初始值
+      // 这个方法里setState不会触发render
+      this.setState({
+        modalVisible: false,
+        modalTitle: '新增',
+        modalInsert: true,
 
-      selectedRowKeys: [],
-      selectedRows: [],
-    });
+        selectedRowKeys: [],
+        selectedRows: [],
+      });
+    }
   }
 
   /**
@@ -375,7 +380,7 @@ class InnerTable extends React.Component {
     });
 
     const rowSelection = {
-      // selectedRowKeys: this.state.selectedRowKeys,  // 其实这里不用传入要选择的key, 只要table组件将状态暴露出来让我知道就可以, 我没必要直接修改它的状态
+      selectedRowKeys: this.state.selectedRowKeys,
       onChange: this.handleSelectChange,
     };
 
