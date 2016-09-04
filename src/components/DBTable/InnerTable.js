@@ -385,7 +385,7 @@ class InnerTable extends React.Component {
     return (
       <div>
         <div className="db-table-button">
-          <Affix offsetTop={8}>
+          <Affix offsetTop={8} target={() => document.getElementById('main-content-div')}>
             <ButtonGroup>
               <Button type="primary" onClick={this.onClickInsert}>
                 <Icon type="plus-circle-o"/> 新增

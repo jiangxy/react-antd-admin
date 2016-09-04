@@ -87,7 +87,7 @@ class App extends React.Component {
         {/*整个页面被一个ant-layout-aside的div包围, 分为sidebar/header/footer/content等几部分*/}
         <Sidebar />
 
-        <div className="ant-layout-main">
+        <div id="main-content-div" className="ant-layout-main">
 
           <Spin spinning={this.state.loading} size="large">
             <Header userName={this.state.userName}/>

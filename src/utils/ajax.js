@@ -111,7 +111,7 @@ const mockResult = (tableName, queryObj) => {
 const end = (func) => {
   // 模拟一个延时
   // 总是感觉setTimeout有点low啊, 不知道有没有更好的办法
-  setTimeout(func, 3000, error, {body: result});  // 延时执行func函数, 参数跟在最后
+  setTimeout(func, 3000, null, {body: result});  // 延时执行func函数, 参数跟在最后
 };
 
 const get = (url) => {
