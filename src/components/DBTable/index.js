@@ -117,14 +117,24 @@ class DBTable extends React.Component {
     logger.debug('receive new props and try to render, nextProps = %o', nextProps);
     this.tryFetchSchema(nextProps);  // 根据新的props重新获取配置
     // 所有状态都要手动还原到初始值
-    this.setState({
-      queryObj: {},
-      data: [],
-      tableLoading: false,
-      currentPage: 1,
-      pageSize: 50,
-      total: 0,
-    });
+    // this.setState({
+    //   queryObj: {},
+    //   data: [],
+    //   tableLoading: false,
+    //   currentPage: 1,
+    //   pageSize: 50,
+    //   total: 0,
+    // });
+
+    // 这种写法和setState有何区别?
+    // 似乎setState不是"立即"发生的, 会导致下面refresh时有bug
+    this.state.queryObj = {};
+    this.state.data = [];
+    this.state.tableLoading = false;
+    this.state.currentPage = 1;
+    this.state.pageSize = 50;
+    this.state.total = 0;
+
     // 切换时也要重新查询一次数据
     this.refresh();
   }

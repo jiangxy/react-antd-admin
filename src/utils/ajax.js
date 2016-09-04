@@ -111,7 +111,7 @@ const mockResult = (tableName, queryObj) => {
 const end = (func) => {
   // 模拟一个延时
   // 总是感觉setTimeout有点low啊, 不知道有没有更好的办法
-  setTimeout(func, 3000, null, {body: result});  // 延时执行func函数, 参数跟在最后
+  setTimeout(func, 1500, null, {body: result});  // 延时执行func函数, 参数跟在最后
 };
 
 const get = (url) => {
@@ -147,7 +147,19 @@ const send = (obj) => {
     // 如果不是登录请求, 目前只能是CRUD请求, 当然以后可能会扩展
     const tableName = getTableNameFromUrl(currentUrl);
     if (tableName) {
-      mockResult(tableName, obj);
+      // 要根据增删改查的情况分别模拟
+      if (currentUrl.indexOf('select') > 0) {
+        mockResult(tableName, obj);
+      } else if (currentUrl.indexOf('insert') > 0) {
+        mockResult(tableName, obj);
+        const tmp = result.data[0];
+        successResult(tmp);
+      } else if (currentUrl.indexOf('update') > 0) {
+        const tmp = currentUrl.indexOf('keys=');
+        successResult(currentUrl.substring(tmp).split(',').length);
+      } else {
+        errorResult(400, `unsupported url ${currentUrl}`);
+      }
     } else {
       errorResult(400, `unsupported url ${currentUrl}`);
     }
@@ -160,7 +172,13 @@ const post = (url) => {
   logger.debug('post url %s', url);
   currentUrl = url;
 
-  return {send, type};
+  // TODO: 要根据url返回不同的数据, 这里设置各种post的url
+  if (currentUrl.indexOf('delete') > 0) {
+    const tmp = currentUrl.indexOf('keys=');
+    successResult(currentUrl.substring(tmp).split(',').length);
+  }
+
+  return {send, type, end};
 };
 
 // 一个辅助的方法, superagent判断返回是否成功太麻烦了啊...要判断3个条件
