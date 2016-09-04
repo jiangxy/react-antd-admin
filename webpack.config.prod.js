@@ -1,5 +1,10 @@
 const webpack = require('webpack');
 
+const babelLoaderConfig = {
+  presets: ['es2015', 'stage-0', 'react'],
+  plugins: [['antd', {'style': true}]],
+};
+
 module.exports = {
   entry: [
     // 可能需要polyfill
@@ -9,7 +14,7 @@ module.exports = {
   output: {
     path: __dirname + '/dist',
     filename: 'bundle.min.js',
-    publicPath: 'http://mycdn.com/', // require时用来生成图片的地址
+    // publicPath: 'http://mycdn.com/', // require时用来生成图片的地址
   },
 
   resolve: {
@@ -21,11 +26,8 @@ module.exports = {
     loaders: [
       {
         test: /\.jsx?$/,
-        loader: 'babel-loader',
-        query: {
-          presets: ['es2015', 'stage-0', 'react'],
-          plugins: [['antd', {'style': true}]],
-        },
+        // 删除一些debug语句
+        loaders: ['babel-loader?' + JSON.stringify(babelLoaderConfig), 'strip-loader?strip[]=logger.debug,strip[]=console.log,strip[]=console.debug'],
         exclude: /node_modules/,
       }, {
         test: /\.css$/,

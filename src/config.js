@@ -11,7 +11,7 @@ module.exports = {
   footer: 'xxx版权所有 © 2015-2099',  // footer中显示的字
 
   debug: true,  // 是否开启debug模式, 不会请求后端接口, 使用mock的数据
-  logLevel: 'debug',  // 日志级别, 目前支持debug/info/warn/error 4种级别
+  logLevel: 'info',  // 日志级别, 目前支持debug/info/warn/error 4种级别
 
   api: {  // 对后端请求的相关配置
     host: 'http://remoteHost:8080',  // 调用ajax接口的地址, 默认值空, 如果是跨域的, 服务端要支持CORS
