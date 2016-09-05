@@ -1,38 +1,28 @@
-# React Hello world
+# React通用后台
 
-定义React工程的基础目录结构，使用了React + Babel + Webpack
+先看[DEMO](http://jiangxy.github.io/react-antd-admin)，用户名/密码：guest/guest。
+ 
+* [为啥要搞这么个东西](#需求背景)
+* [Quick Start](#quick-start)
+* [更多文档](docs/README.md)
 
-## 使用方法
+## 需求背景
+
+## Quick Start
 
 1. 保证node版本5.3+，npm版本3.3+
 2. `npm install`，安装必要的依赖
 3. `npm run build`，编译js文件，结果会放在`dist/bundle.js`，可以打开`dist/index.html`查看效果
 
-## 其他一些命令
+其他命令:
+1. `npm run prod`，编译生产环境的js，编译完成后打开`dist/index-prod.html`查看效果。
+2. `npm run eslint`/`npm run stylelint`/`npm run lesshint`，一些lint工具。
+3. `npm run clean`，删除dist目录下的bundle*.js。
 
-1. `npm run dev`，运行一个测试服务器，可以在`http://localhost:8080`查看效果，会实时同步代码更新
-2. `npm run eslint`，运行js/jsx文件的风格检查
-3. `npm run stylelint`，运行css文件的风格检查
-4. `npm run lint`，同时运行eslint和stylelint
+## 一些说明
 
-## 工程结构
+### 安全/权限问题
+ 
+### 浏览器兼容性
 
-| 目录名  | 说明 |
-| ------------- | ------------- |
-| .editorconfig  | EditorConfig配置文件。http://editorconfig.org/ |
-| .eslintrc | ESLint配置文件。http://eslint.org/ |
-| .stylelintrc  | StyleLint配置文件。http://stylelint.io/ |
-| dist | 编译时的目标目录。js文件编译后会在这个目录生成bundle.js文件。这个目录也包括一个index.html文件用于承载js。 |
-| docs | 放置各种项目文档 |
-| node_modules | 放置各种node模块，`npm install`时会自动生成 |
-| package.json | 项目的配置，包括一些基本信息和依赖关系等 |
-| src/components | 所有React组件放在这里，每个组件单独一个目录。|
-| src/index.js | 编译js时的入口。通俗的说，是将各种React组件组装起来的地方 |
-| webpack.config.js | webpack的配置文件 |
-
-## 一些约定
-
-1. 所有js/jsx文件，使用ES6的写法。
-2. 样式文件尽量使用less而不是css。
-3. React组件尽量“高内聚”，相关的配置、样式等都放在同一个目录中。
 
