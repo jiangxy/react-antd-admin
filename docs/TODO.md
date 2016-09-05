@@ -23,7 +23,7 @@
 - [x] 精简header
 - [ ] 自定义菜单
 
-### DBTable
+## DBTable组件
 
 - [ ] schema校验
 - [ ] 数据校验

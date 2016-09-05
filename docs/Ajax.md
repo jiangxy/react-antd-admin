@@ -35,9 +35,16 @@
 
 | 接口名  | 说明 | 输入例子 | 输出例子 |
 | ------------- | ------------- | ------------- | ------------- |
-| /api/{tableName}/select | 查询数据, 传入查询条件, 返回查询的数据 | request body是一个QueryVO, 例如`{"page":1,"pageSize":50,"name":"guest"}` | {"code":0,"data":[{"experience":"Less than 1 year","frequency":"2 to 5 SMS daily","id":6,"isNative":"no","phoneModel":"Nokia"}],"message":"","success":true,"total":31461} |
-| /api/{tableName}/insert | 插入数据, 返回插入后的完整记录 | 要插入的数据: `{"content":"fasdf","phoneModel":"jxy"}` | {"code":0,"data":{"content":"fasdf","id":31471,"phoneModel":"jxy"},"message":"","success":true,"total":null} |
-| /api/{tableName}/update | 更新数据, 只能按主键更新, url中要带上keys参数表明要更新哪些记录, 可以单条更新也可以批量更新, 返回更新成功的记录数 | 请求的url: `/api/{tableName}/update?keys=5488`, body: `{"phoneModel":"jxyjxy","isNative":"yes"}` | {"code":0,"data":1,"message":"","success":true,"total":null} |
-| /api/{tableName}/delete | 删除数据, 也是只能按主键删除, url中要带上keys参数, 返回删除成功的记录数 | 请求url: `/api/{tableName}/delete?keys=31471` | {"code":0,"data":1,"message":"","success":true,"total":null} |
-| /api/{tableName}/import | 导入数据, 返回一个string的提示信息 | 无 | {"data":"导入成功XX条，导入失败YY条，导入失败的行：1,2,3","errorMsg":"","success":true,"totalCount":null} |
-| /api/{tableName}/export | 导出数据, 跟select接口类似, 也是传入一个QueryVO, 要返回一个HTTP下载请求 | 无 | 无 |
+| /api/{tableName}/select | 查询数据
+传入查询条件, 返回查询的数据 | request body是一个QueryVO, 例如`{"page":1,"pageSize":50,"name":"guest"}` | {"code":0,"data":[{"experience":"Less than 1 year","frequency":"2 to 5 SMS daily","id":6,"isNative":"no","phoneModel":"Nokia"}],"message":"","success":true,"total":31461} |
+| /api/{tableName}/insert | 插入数据
+返回插入后的完整记录 | 要插入的数据: `{"content":"fasdf","phoneModel":"jxy"}` | {"code":0,"data":{"content":"fasdf","id":31471,"phoneModel":"jxy"},"message":"","success":true,"total":null} |
+| /api/{tableName}/update | 更新数据
+只能按主键更新, url中要带上keys参数表明要更新哪些记录
+可以单条更新也可以批量更新, 返回更新成功的记录数 | 请求的url: `/api/{tableName}/update?keys=5488`, body: `{"phoneModel":"jxyjxy","isNative":"yes"}` | {"code":0,"data":1,"message":"","success":true,"total":null} |
+| /api/{tableName}/delete | 删除数据
+也是只能按主键删除, url中要带上keys参数, 返回删除成功的记录数 | 请求url: `/api/{tableName}/delete?keys=31471` | {"code":0,"data":1,"message":"","success":true,"total":null} |
+| /api/{tableName}/import | 导入数据
+返回一个string的提示信息 | 无 | {"data":"导入成功XX条，导入失败YY条，导入失败的行：1,2,3","errorMsg":"","success":true,"totalCount":null} |
+| /api/{tableName}/export | 导出数据
+跟select接口类似, 也是传入一个QueryVO, 要返回一个HTTP下载请求 | 无 | 无 |
