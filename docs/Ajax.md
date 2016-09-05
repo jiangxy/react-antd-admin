@@ -2,7 +2,7 @@
 
 ## 基本格式
 
-```
+```java
 {
   "success" : true/false,  // 本次请求是否成功
   "code" : 0,  // 返回码, 默认是0表示成功
@@ -27,24 +27,17 @@
 
 | 接口名  | 说明 | 输入例子 | 输出例子 |
 | ------------- | ------------- | ------------- | ------------- |
-| /api/getCurrentUser  | 获得当前登录的用户名, 是否登录完全由后端判断 | 不需要任何参数 | {"code":10,"data":null,"message":"not login yet","success":false,"total":null} |
-| /api/login | 校验用户的登录信息, 成功的话返回当前登录的用户名 | request body是一个表单, 比如`username=guest&password=guest` | {"code":0,"data":"guest","message":"","success":true,"total":null} |
+| /api/getCurrentUser  | 获得当前登录的用户名, 是否登录完全由后端判断 | 不需要任何参数 | `{"code":10,"data":null,"message":"not login yet","success":false,"total":null}` |
+| /api/login | 校验用户的登录信息, 成功的话返回当前登录的用户名 | request body是一个表单, 比如`username=guest&password=guest` | `{"code":0,"data":"guest","message":"","success":true,"total":null}` |
 | /api/logout  | 注销当前用户, 用户点击注销时浏览器会直接跳转到这个地址 | 无 | 无 |
 
 ### CRUD相关接口
 
 | 接口名  | 说明 | 输入例子 | 输出例子 |
 | ------------- | ------------- | ------------- | ------------- |
-| /api/{tableName}/select | 查询数据
-传入查询条件, 返回查询的数据 | request body是一个QueryVO, 例如`{"page":1,"pageSize":50,"name":"guest"}` | {"code":0,"data":[{"experience":"Less than 1 year","frequency":"2 to 5 SMS daily","id":6,"isNative":"no","phoneModel":"Nokia"}],"message":"","success":true,"total":31461} |
-| /api/{tableName}/insert | 插入数据
-返回插入后的完整记录 | 要插入的数据: `{"content":"fasdf","phoneModel":"jxy"}` | {"code":0,"data":{"content":"fasdf","id":31471,"phoneModel":"jxy"},"message":"","success":true,"total":null} |
-| /api/{tableName}/update | 更新数据
-只能按主键更新, url中要带上keys参数表明要更新哪些记录
-可以单条更新也可以批量更新, 返回更新成功的记录数 | 请求的url: `/api/{tableName}/update?keys=5488`, body: `{"phoneModel":"jxyjxy","isNative":"yes"}` | {"code":0,"data":1,"message":"","success":true,"total":null} |
-| /api/{tableName}/delete | 删除数据
-也是只能按主键删除, url中要带上keys参数, 返回删除成功的记录数 | 请求url: `/api/{tableName}/delete?keys=31471` | {"code":0,"data":1,"message":"","success":true,"total":null} |
-| /api/{tableName}/import | 导入数据
-返回一个string的提示信息 | 无 | {"data":"导入成功XX条，导入失败YY条，导入失败的行：1,2,3","errorMsg":"","success":true,"totalCount":null} |
-| /api/{tableName}/export | 导出数据
-跟select接口类似, 也是传入一个QueryVO, 要返回一个HTTP下载请求 | 无 | 无 |
+| /api/{tableName}/select | 查询数据, 传入查询条件, 返回查询的数据 | request body是一个QueryVO, 例如`{"page":1,"pageSize":50,"name":"guest"}` | `{"code":0,"data":[{"experience":"Less than 1 year","frequency":"2 to 5 SMS daily","id":6,"isNative":"no","phoneModel":"Nokia"}],"message":"","success":true,"total":31461}` |
+| /api/{tableName}/insert | 插入数据, 返回插入后的完整记录 | 要插入的数据: `{"content":"fasdf","phoneModel":"jxy"}` | `{"code":0,"data":{"content":"fasdf","id":31471,"phoneModel":"jxy"},"message":"","success":true,"total":null}` |
+| /api/{tableName}/update | 更新数据, 只能按主键更新, url中要带上keys参数表明要更新哪些记录, 可以单条更新也可以批量更新, 返回更新成功的记录数 | 请求的url: `/api/{tableName}/update?keys=5488`, body: `{"phoneModel":"jxyjxy","isNative":"yes"}` | `{"code":0,"data":1,"message":"","success":true,"total":null}` |
+| /api/{tableName}/delete | 删除数据, 也是只能按主键删除, url中要带上keys参数, 返回删除成功的记录数 | 请求url: `/api/{tableName}/delete?keys=31471` | `{"code":0,"data":1,"message":"","success":true,"total":null}` |
+| /api/{tableName}/import | 导入数据, 返回一个string的提示信息 | 无 | `{"data":"导入成功XX条，导入失败YY条，导入失败的行：1,2,3","errorMsg":"","success":true,"totalCount":null}` |
+| /api/{tableName}/export | 导出数据, 跟select接口类似, 也是传入一个QueryVO, 要返回一个HTTP下载请求 | 无 | 无 |
