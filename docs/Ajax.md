@@ -26,9 +26,9 @@
 ### 通用接口 (我kao github的表格怎么这么丑啊)
 
 | 接口名  | 说明 | 输入例子 | 输出例子 |
-| ------------- | ------------- | ------------- | ------------- |
+| :---: | :---: | :---: | :---: |
 | /api/getCurrentUser  | 获得当前登录的用户名, 是否登录完全由后端判断 | 不需要任何参数 | `{"code":10,"data":null,"message":"not login yet","success":false,"total":null}` |
-| /api/login | 校验用户的登录信息, 成功的话返回当前登录的用户名 | request body是一个表单, 比如`username=guest&password=guest` | `{"code":0,"data":"guest","message":"","success":true,"total":null}`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |
+| /api/login | 校验用户的登录信息, 成功的话返回当前登录的用户名 | request body是一个表单, 比如`username=guest&password=guest` | `{"code":0,"data":"guest","message":"","success":true,"total":null}` |
 | /api/logout  | 注销当前用户, 用户点击注销时浏览器会直接跳转到这个地址 | 无 | 无 |
 
 ### CRUD相关接口
