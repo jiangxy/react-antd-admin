@@ -1,10 +1,13 @@
 # React通用后台
 
-可以先看下[DEMO](http://jiangxy.github.io/react-antd-admin)，用户名/密码：guest/guest。
+目标是快速搭建一个可用的后台界面，可以先看下[DEMO](http://jiangxy.github.io/react-antd-admin)，用户名/密码：guest/guest。
+
+如果对React或Ant Design感兴趣，但又不知如何入手的话，也可以参考下这个项目。
  
 * [这是个啥东西](#需求背景)
 * [Quick Start](#quick-start)
 * [一些说明](#一些说明)
+* [TODO](docs/TODO.md)
 * [更多文档](docs/README.md)
 
 ## 需求背景
@@ -17,7 +20,7 @@
 
 然而每次写前端都很痛苦，无论以前用velocity+jquery+bootstrap，还是现在用React。首先有很多重复的工作，很多后台界面其实都长得差不多；其次有时会为一些很小的需求投入很大精力，写很多业务逻辑，但这些代码都是不可复用的，感觉花这么多时间不值得，毕竟不是本职工作啊，只是个二手前端。。。甚至有时折腾css就能搞一天。。。
 
-于是就想着能否一劳永逸，搞个比较通用的东西出来，**尽量用写配置的方式替代写代码**。从某种角度上说，和[Metronic](http://keenthemes.com/preview/metronic/)/[AdminLTE](https://almsaeedstudio.com/preview)的目标有点相似。正好前段时间在研究[Ant Design](http://ant.design)，做了一些尝试，于是有了这个项目。当然并不完美，对于React和Ant Desing，我也是边学边用的。
+于是就想着能否一劳永逸，搞个比较通用的东西出来，**尽量用写配置的方式替代写代码**。从某种角度上说，和[Metronic](http://keenthemes.com/preview/metronic/)/[AdminLTE](https://almsaeedstudio.com/preview)的目标有点相似。正好前段时间在研究[Ant Design](http://ant.design)，做了一些尝试，于是有了这个项目。当然并不完美，对于React和Ant Design，我也是边学边用的。
 
 首先看下，常见的后台系统都是什么样子的？
 
@@ -85,7 +88,7 @@
 
 目前对安全&权限都没考虑进去，如果有这方面的要求，只能后端校验了。在请求后端接口时校验用户的身份和权限。
 
-权限问题也很麻烦，感觉也不太好做成通用的东西，如果有需求的话，还是定制开发比较好。
+权限问题也很麻烦，感觉不太好做成通用的东西，如果有需求的话，还是定制开发比较好。
  
 ### 浏览器兼容性
 
