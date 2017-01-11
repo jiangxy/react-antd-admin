@@ -8,6 +8,10 @@
     "node": ">=5.0 <7",
     "npm": ">=3.3 <4"
   },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:jiangxy/react-antd-admin.git"
+  },
   "keywords": [
     "ant",
     "react",
