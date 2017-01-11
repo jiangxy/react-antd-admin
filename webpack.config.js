@@ -3,7 +3,8 @@ const webpack = require('webpack');
 // 将babel-loader的配置独立出来, 因为webpack的限制: http://stackoverflow.com/questions/33117136/how-to-add-a-query-to-a-webpack-loader-with-multiple-loaders
 const babelLoaderConfig = {
   presets: ['latest', 'stage-0', 'react'],  // 开启ES6、部分ES7、react特性, preset相当于预置的插件集合
-  plugins: [['antd', {'style': true}]],  // antd模块化加载, https://github.com/ant-design/babel-plugin-antd
+  plugins: [['import', {libraryName: 'antd', style: true}]],  // antd模块化加载, https://github.com/ant-design/babel-plugin-import
+  cacheDirectory: true,
 };
 
 module.exports = {

@@ -2,12 +2,13 @@ const webpack = require('webpack');
 
 const babelLoaderConfig = {
   presets: ['latest', 'stage-0', 'react'],
-  plugins: [['antd', {'style': true}]],
+  plugins: [['import', {libraryName: 'antd', style: true}]],
+  cacheDirectory: true,
 };
 
 module.exports = {
   entry: [
-    // 可能需要polyfill
+    'babel-polyfill',
     './src/index.js',
   ],
 
