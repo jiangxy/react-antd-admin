@@ -7,6 +7,8 @@ const babelLoaderConfig = {
 };
 
 module.exports = {
+  devtool: 'cheap-module-source-map',
+
   entry: [
     'babel-polyfill',
     './src/index.js',
@@ -35,7 +37,7 @@ module.exports = {
         loader: 'style!css',
       }, {
         test: /\.less$/,
-        loader: 'style!css!less',
+        loader: 'style!css!less?{"sourceMap":true}',
       }, {
         test: /\.(png|jpg|svg)$/,
         loader: 'url?limit=25000',
@@ -46,6 +48,7 @@ module.exports = {
   plugins: [
     // 代码压缩
     new webpack.optimize.UglifyJsPlugin({
+      sourceMap: true,
       minimize: true,
       compress: {warnings: false},
     }),

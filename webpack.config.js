@@ -8,6 +8,8 @@ const babelLoaderConfig = {
 };
 
 module.exports = {
+  devtool: 'eval-source-map',
+
   entry: [
     'webpack-dev-server/client?http://0.0.0.0:8080', // WebpackDevServer host and port
     'webpack/hot/only-dev-server', // "only" prevents reload on syntax errors
@@ -50,6 +52,7 @@ module.exports = {
   plugins: [
     new webpack.BannerPlugin('This file is created by jxy'),   // 生成文件时加上注释
     new webpack.DefinePlugin({
+      'process.env.NODE_ENV': JSON.stringify('development'),
       __DEV__: JSON.stringify(JSON.parse(process.env.NODE_ENV === 'production' ? 'false' : 'true')),  // magic globals, 用于打印一些调试的日志, webpack -p时会删除
     }),
   ],
