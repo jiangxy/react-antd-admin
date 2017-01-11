@@ -8,11 +8,10 @@ import './index.less';
 class Logo extends React.Component {
 
   render() {
-    // TODO: 这个logo的样式还是要优化下
     return (
       <div className="ant-layout-logo">
         <div className="logo-text">
-          {globalConfig.name}
+          <a href="#">{globalConfig.name}</a>
         </div>
       </div>
     );
