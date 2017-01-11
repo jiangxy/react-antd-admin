@@ -1,7 +1,7 @@
 const webpack = require('webpack');
 
 const babelLoaderConfig = {
-  presets: ['es2015', 'stage-0', 'react'],
+  presets: ['latest', 'stage-0', 'react'],
   plugins: [['antd', {'style': true}]],
 };
 
