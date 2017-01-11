@@ -41,7 +41,7 @@ module.exports = {
         loader: 'style!css',
       }, {
         test: /\.less$/,
-        loader: 'style!css!less',  // 用!去链式调用loader
+        loader: 'style!css!less?{"sourceMap":true}',  // 用!去链式调用loader
       }, {
         test: /\.(png|jpg|svg)$/,
         loader: 'url?limit=25000',  // 图片小于一定值的话转成base64
