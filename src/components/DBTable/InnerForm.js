@@ -235,14 +235,14 @@ class InnerForm extends React.Component {
         cols.push(
           <Col key={`${field.key}Begin`} sm={8}>
             <FormItem key={`${field.key}Begin`} label={field.title} labelCol={{ span: 10 }} wrapperCol={{ span:14 }}>
-              <DatePicker showTime format="yyyy-MM-dd HH:mm:ss"
+              <DatePicker showTime format="YYYY-MM-DD HH:mm:ss"
                           placeholder={field.placeholderBegin || '开始日期'} {...getFieldProps(`${field.key}Begin`)}/>
             </FormItem>
           </Col>
         );
         cols.push(<Col key={`${field.key}End`} sm={8}>
           <FormItem key={`${field.key}End`} labelCol={{ span: 10 }} wrapperCol={{ span:14 }}>
-            <DatePicker showTime format="yyyy-MM-dd HH:mm:ss"
+            <DatePicker showTime format="YYYY-MM-DD HH:mm:ss"
                         placeholder={field.placeholderEnd || '结束日期'} {...getFieldProps(`${field.key}End`)}/>
           </FormItem>
         </Col>);

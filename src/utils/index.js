@@ -1,6 +1,11 @@
 // 一些辅助用的工具方法
 // 很多都是gross hack, 属于历史遗留问题
 
+// antd从2.x开始引入了moment: http://momentjs.com/docs/
+// 这是个好东西, 处理日期方便多了, 简直就是javascript界的joda-time
+// 这些prototype的hack基本用不到了
+// 不过它format时的pattern和常见的不太一样, 比如要大写的YYYY才代表年份
+
 /** 对Date的扩展，将 Date 转化为指定格式的String * 月(M)、日(d)、12小时(h)、24小时(H)、分(m)、秒(s)、周(E)、季度(q)
  * 可以用 1-2 个占位符 * 年(y)可以用 1-4 个占位符，毫秒(S)只能用 1 个占位符(是 1-3 位的数字)
  * eg:
