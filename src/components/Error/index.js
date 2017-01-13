@@ -6,12 +6,12 @@ import './index.less';
  * 显示错误信息
  * 可以当404页来用
  */
-class Error extends React.Component {
+class Error extends React.PureComponent {
 
   render() {
     return (
       <div className="not-found">
-        <div style={{ fontSize:32 }}><Icon type="frown"/></div>
+        <div style={{ fontSize:32 }}><Icon type="frown-o"/></div>
         <h1>{this.props.errorMsg || '404 Not Found'}</h1>
       </div>
     );
