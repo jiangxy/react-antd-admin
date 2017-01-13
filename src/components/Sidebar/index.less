@@ -1,0 +1,95 @@
+// 又到了痛苦的写css的时间了啊...
+
+// less虽然引入了变量/函数/流程控制之类的, 更类似编程语言了, 但写法还是有些奇怪的
+@sidebarCollapsible: true; // 侧边栏是否可折叠, 这个变量是通过webpack less-loader传进来的
+
+// 下方折叠按钮的样式
+.ant-layout-sidebar-trigger {
+  position: fixed;
+  text-align: center;
+  width: inherit;
+  bottom: 0;
+  cursor: pointer;
+  height: 42px;
+  line-height: 48px;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  & when not (@sidebarCollapsible = true) {
+    display: none;
+  }
+}
+
+.ant-layout-sidebar-base {
+  background: #404040;
+  position: absolute;
+  overflow: auto;
+  padding-bottom: 24px;
+  transition: all 0.3s ease;
+
+  // less的if语句: http://stackoverflow.com/questions/14910667/how-to-use-if-statements-in-less
+  // 但是没有else语句...
+  & when (@sidebarCollapsible = true) {
+    height: calc(~"100% - 42px"); // 这是个很神奇的写法, 要减去下方按钮的高度
+  }
+  & when not (@sidebarCollapsible = true) {
+    height: 100%;
+  }
+}
+
+.ant-layout-sidebar {
+  width: 224px; // 正常的侧边栏宽度
+  .ant-layout-sidebar-base; // less的mixin很好用, 代码复用的几种方式: 继承 vs mixin vs 组合
+}
+
+.ant-layout-sidebar-collapse {
+  width: 64px; // 侧边栏折叠时的宽度
+  .ant-layout-sidebar-base;
+}
+
+/* 定义侧边栏正常显示时的样式 - begin */
+.ant-layout-sidebar > .ant-menu {
+  margin-bottom: 20px;
+}
+
+.ant-layout-sidebar > .ant-menu > .ant-menu-item {
+  margin: 16px 0;
+}
+
+.ant-layout-sidebar > .ant-menu > .ant-menu-item .nav-text {
+  vertical-align: baseline;
+  display: inline-block;
+}
+
+.ant-layout-sidebar > .ant-menu .invisible-nav-text {
+  // 不用display:none, 而是设为0px, 动画效果就比较明显
+  // 这都能想到, 我都佩服自己...
+  font-size: 0px;
+}
+
+.ant-layout-sidebar > .ant-menu > .ant-menu-item > .anticon {
+  transition: font-size .3s;
+}
+
+/* 定义侧边栏正常显示时的样式 - end */
+
+/* 定义侧边栏折叠时的样式 - begin */
+.ant-layout-sidebar-collapse > .ant-menu .anticon {
+  font-size: 16px;
+  display: inline-block;
+}
+
+.ant-layout-sidebar-collapse > .ant-menu .ant-menu-submenu-title:after {
+  content: ''; // 去除submenu右方的箭头提示
+}
+
+.ant-layout-sidebar-collapse > .ant-menu .nav-text {
+  display: none; // 折叠时菜单项文字隐藏
+}
+
+.ant-layout-sidebar-collapse > .ant-menu .invisible-nav-text {
+  font-size: 16px;
+  transition: all 0.3s ease;
+  display: inline-block;
+}
+
+/* 定义侧边栏折叠时的样式 - end */

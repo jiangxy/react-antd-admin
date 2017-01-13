@@ -1,9 +1,14 @@
 const webpack = require('webpack');
+const globalConfig = require('./src/config.js');
 
 const babelLoaderConfig = {
   presets: ['latest', 'stage-0', 'react'],
   plugins: [['import', {libraryName: 'antd', style: true}]],
   cacheDirectory: true,
+};
+
+const lessLoaderVars = {
+  sidebarCollapsible: globalConfig.sidebar.collapsible,
 };
 
 module.exports = {
@@ -37,7 +42,7 @@ module.exports = {
         loader: 'style!css',
       }, {
         test: /\.less$/,
-        loader: 'style!css!less?{"sourceMap":true}',
+        loader: 'style!css!' + `less?{"sourceMap":true,"modifyVars":${JSON.stringify(lessLoaderVars)}}`,
       }, {
         test: /\.(png|jpg|svg)$/,
         loader: 'url?limit=25000',

@@ -2,6 +2,8 @@
  * 定义整个项目的全局配置
  */
 
+'use strict';
+
 // 约定优于配置
 // 我可以提供尽量多的配置, 但尽量不要太个性化, 接口的路径/名称/格式之类的
 // 遵循统一的规范, 好维护, 交给其他人也比较简单
@@ -32,6 +34,11 @@ module.exports = {
     logout: '/logout',  // 退出的url, 用户点击退出时, 浏览器会直接跳转到这个链接
   },
 
+  sidebar: {  // 侧边栏相关配置
+    collapsible: true,  // 是否显示折叠侧边栏的按钮
+    autoMenuSwitch: true,  // 只展开一个顶级菜单, 其他顶级菜单自动折叠
+  },
+
   // 以下一些辅助的函数, 不要修改
   // 不能使用箭头函数, 会导致this是undefined
 
@@ -40,7 +47,7 @@ module.exports = {
    *
    * @returns {boolean}
    */
-  isCrossDomain: function () {
+  isCrossDomain() {
     if (this.api.host && this.api.host !== '') {
       return true;
     } else {
@@ -53,7 +60,7 @@ module.exports = {
    *
    * @returns {boolean}
    */
-  isSSO: function () {
+  isSSO() {
     if (this.login.sso && this.login.sso !== '') {
       return true;
     } else {
@@ -66,7 +73,7 @@ module.exports = {
    *
    * @returns {*}
    */
-  getAPIPath: function () {
+  getAPIPath() {
     if (this.tmpApiPath) { // 缓存
       return this.tmpApiPath;
     }

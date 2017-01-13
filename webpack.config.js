@@ -1,10 +1,18 @@
 const webpack = require('webpack');
+const globalConfig = require('./src/config.js');
 
 // 将babel-loader的配置独立出来, 因为webpack的限制: http://stackoverflow.com/questions/33117136/how-to-add-a-query-to-a-webpack-loader-with-multiple-loaders
 const babelLoaderConfig = {
   presets: ['latest', 'stage-0', 'react'],  // 开启ES6、部分ES7、react特性, preset相当于预置的插件集合
   plugins: [['import', {libraryName: 'antd', style: true}]],  // antd模块化加载, https://github.com/ant-design/babel-plugin-import
   cacheDirectory: true,
+};
+
+// 向less loader传的值, 用于覆盖less源文件中的变量
+// 有个小问题就是这个变量只会初始化一次, 不会随globalConfig的变化而变化
+// 所以在webpack-dev-server中调试时, 热加载有点问题, 不能实时更新
+const lessLoaderVars = {
+  sidebarCollapsible: globalConfig.sidebar.collapsible,
 };
 
 module.exports = {
@@ -41,7 +49,7 @@ module.exports = {
         loader: 'style!css',
       }, {
         test: /\.less$/,
-        loader: 'style!css!less?{"sourceMap":true}',  // 用!去链式调用loader
+        loader: 'style!css!' + `less?{"sourceMap":true,"modifyVars":${JSON.stringify(lessLoaderVars)}}`,  // 用!去链式调用loader
       }, {
         test: /\.(png|jpg|svg)$/,
         loader: 'url?limit=25000',  // 图片小于一定值的话转成base64

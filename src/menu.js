@@ -42,6 +42,16 @@ module.exports = [
     name: '我没有图标',
   },
   {
+    key: 'noiconhaha',
+    name: '又一个没图标的',
+    child: [
+      {
+        key: 'nesnesnes',
+        name: 'N64',
+      },
+    ],
+  },
+  {
     key: 'daohang',
     name: '导航',
     icon: 'appstore',
