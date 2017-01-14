@@ -1,35 +1,24 @@
 import React from 'react';
 import {BackTop} from 'antd';
 import globalConfig from 'config.js';
+import './index.less';
 
 /**
  * 定义Footer组件
  */
-class Footer extends React.Component {
+class Footer extends React.PureComponent {
 
   render() {
-    // FIXME: gross hack
-    // footer组件第一次render的时候, 不能返回BackTop, 因为main-content-div还没render
-    if (this.inited) {
-      return (
-        <div>
-          <BackTop target={() => document.getElementById('main-content-div')}/>
-          <div className="ant-layout-footer">
-            {globalConfig.footer || 'footer被弄丢啦!'}
-          </div>
-        </div>
-      );
-    } else {
-      this.inited = true;
-      return (
-        <div>
-          <div className="ant-layout-footer">
-            {globalConfig.footer || 'footer被弄丢啦!'}
-          </div>
-        </div>
-      );
-    }
+    const text = globalConfig.footer || 'footer被弄丢啦!';
 
+    // backtop如果不设置target会有问题
+    // footer的字可以有html标签, 有一定XSS的风险, 不过问题不大
+    return (
+      <div>
+        <BackTop target={() => document.getElementById('main-content-div')}/>
+        <div className="ant-layout-footer" dangerouslySetInnerHTML={{ __html: text }}/>
+      </div>
+    );
   }
 
 }
