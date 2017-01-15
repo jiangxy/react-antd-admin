@@ -7,6 +7,7 @@
 * [这是个啥东西](#需求背景)
 * [Quick Start](#quick-start)
 * [一些说明](#一些说明)
+* [更新记录](CHANGELOG.md)
 * [TODO](docs/TODO.md)
 * [更多文档](docs/README.md)
 
