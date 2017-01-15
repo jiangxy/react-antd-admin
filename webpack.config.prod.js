@@ -1,6 +1,9 @@
 const webpack = require('webpack');
 const globalConfig = require('./src/config.js');
 
+const ExtractTextPlugin = require("extract-text-webpack-plugin");
+const CompressionPlugin = require("compression-webpack-plugin");
+
 const babelLoaderConfig = {
   presets: ['latest', 'stage-0', 'react'],
   plugins: [['import', {libraryName: 'antd', style: true}]],
@@ -39,16 +42,22 @@ module.exports = {
         exclude: /node_modules/,
       }, {
         test: /\.css$/,
-        loader: 'style!css',
+        loader: ExtractTextPlugin.extract('style', 'css'),
+        //loader: 'style!css',
       }, {
         test: /\.less$/,
-        loader: 'style!css!' + `less?{"sourceMap":true,"modifyVars":${JSON.stringify(lessLoaderVars)}}`,
+        loader: ExtractTextPlugin.extract('style', 'css!' + `less?{"sourceMap":true,"modifyVars":${JSON.stringify(lessLoaderVars)}}`),
+        //loader: 'style!css!' + `less?{"sourceMap":true,"modifyVars":${JSON.stringify(lessLoaderVars)}}`,
       }, {
         test: /\.(png|jpg|svg)$/,
         loader: 'url?limit=25000',
       },
     ],
   },
+
+  // 减小bundle size是个很大的学问...
+  // https://chrisbateman.github.io/webpack-visualizer/
+  // http://stackoverflow.com/questions/34239731/how-to-minimize-the-size-of-webpacks-bundle
 
   plugins: [
     // 代码压缩
@@ -67,6 +76,17 @@ module.exports = {
     new webpack.optimize.AggressiveMergingPlugin(),
     // 允许错误不打断程序
     new webpack.NoErrorsPlugin(),
+
+    // css单独抽出来
+    new ExtractTextPlugin('bundle.min.css', {allChunks: false}),
+    // 压缩成gzip格式
+    new CompressionPlugin({
+      asset: "[path].gz[query]",
+      algorithm: "gzip",
+      test: /\.js$|\.css$|\.html$/,
+      threshold: 10240,
+      minRatio: 0,
+    }),
 
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
