@@ -35,7 +35,7 @@ class Header extends React.PureComponent {
     const paths = [];
 
     // 这一项菜单是必须有的, 不需要在配置文件里配置
-    this.logoutMenuItem = <MenuItem key="logout">
+    const logoutMenuItem = <MenuItem key="logout">
       <Icon type="logout"/>
       <a href={`${globalConfig.getAPIPath()}${globalConfig.login.logout}`}>注销</a>
     </MenuItem>;
@@ -100,18 +100,14 @@ class Header extends React.PureComponent {
 
     this.menu = menu;
 
-    // 如果用户没有定义userMenu怎么处理? 或者定义了key=userMenu, 但是没有定义child怎么办?
-    // 所以这里判断下, 如果用户没有定义, 就把userMenu作为普通的MenuItem, 而不是SubMenu
-
-    const userMenu = userMenuItems && userMenuItems[0] ?  // 这个判断方式有一点hack
+    // 注意用户菜单的最后一项必定是注销
+    const userMenu = (
       <SubMenu title={<span><Icon type="user" />{this.props.userName}</span>}>
         {userMenuItems}
-      </SubMenu>  // 有子菜单就作为SubMenu
-      :
-      <MenuItem key="userMenu">
-        <Icon type="user"/>
-        <a href="#">{this.props.userName}</a>
-      </MenuItem>;  // 没有子菜单就作为MenuItem
+        <Menu.Divider />
+        {logoutMenuItem}
+      </SubMenu>
+    );
 
     this.userMenu = userMenu;
   }
@@ -124,7 +120,6 @@ class Header extends React.PureComponent {
       <div className="ant-layout-header">
         {/*定义header中的菜单, 从右向左依次是注销/用户菜单/其他自定义菜单*/}
         <Menu className="header-menu" mode="horizontal">
-          {this.logoutMenuItem}
           {this.userMenu}
           {this.menu}
         </Menu>

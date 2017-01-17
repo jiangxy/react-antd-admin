@@ -32,3 +32,9 @@
     }
   }
 }
+
+// 防止最右边的菜单项超出屏幕宽度, 导致出现滚动条
+.header-menu li:first-child ul {
+  right: 1px;
+  left: auto;
+}
