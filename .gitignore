@@ -11,7 +11,7 @@ node_modules
 npm-debug.log
 
 # other
-dist/
-!dist/*.html
+# dist/
+# !dist/*.html
 
 java/**/*.java
