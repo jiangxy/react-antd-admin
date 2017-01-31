@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- ejs语法 -->
+  <title><%= htmlWebpackPlugin.options.title %></title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <!-- 设置favicon -->
+  <% if (htmlWebpackPlugin.options.favIcon && htmlWebpackPlugin.options.favIcon.length > 0) { %>
+    <link rel="shorticon icon" type="image/x-icon" href="<%= htmlWebpackPlugin.options.favIcon %>">
+  <% } %>
+</head>
+
+<body>
+  <!-- 注意height属性 -->
+  <div id="root" style="height:100%;"></div>
+</body>
+
+<!-- 是否是开发环境? -->
+<% if (htmlWebpackPlugin.options.devMode) { %>
+    <script src="http://localhost:8080/webpack-dev-server.js"></script>
+<% } %>
+
+</html>

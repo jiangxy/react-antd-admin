@@ -1,6 +1,8 @@
 const webpack = require('webpack');
 const globalConfig = require('./src/config.js');
 
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+
 // 将babel-loader的配置独立出来, 因为webpack的限制: http://stackoverflow.com/questions/33117136/how-to-add-a-query-to-a-webpack-loader-with-multiple-loaders
 const babelLoaderConfig = {
   presets: ['latest', 'stage-0', 'react'],  // 开启ES6、部分ES7、react特性, preset相当于预置的插件集合
@@ -62,6 +64,16 @@ module.exports = {
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify('development'),
       __DEV__: JSON.stringify(JSON.parse(process.env.NODE_ENV === 'production' ? 'false' : 'true')),  // magic globals, 用于打印一些调试的日志, webpack -p时会删除
+    }),
+    // 生成html文件
+    new HtmlWebpackPlugin({
+      template: 'index.html.template',
+      title: globalConfig.name,
+
+      // HtmlWebpackPlugin自己有一个favicon属性, 但用起来有点问题, 所以自己重新搞个favIcon属性
+      favIcon: globalConfig.favicon,
+      // 这个属性也是我自己定义的, dev模式下要加载一些额外的js
+      devMode: true,
     }),
   ],
 };
