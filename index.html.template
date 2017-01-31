@@ -13,8 +13,7 @@
 </head>
 
 <body>
-  <!-- 注意height属性 -->
-  <div id="root" style="height:100%;"></div>
+  <div id="root"></div>
 </body>
 
 <!-- 是否是开发环境? -->
