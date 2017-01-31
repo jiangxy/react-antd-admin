@@ -38,7 +38,7 @@ module.exports = {
       {
         test: /\.jsx?$/,
         // 删除一些debug语句
-        loaders: ['babel-loader?' + JSON.stringify(babelLoaderConfig), 'strip-loader?strip[]=logger.debug,strip[]=console.log,strip[]=console.debug'],
+        loaders: ['babel-loader?' + JSON.stringify(babelLoaderConfig), 'strip-loader?strip[]=logger.info,strip[]=logger.debug,strip[]=console.log,strip[]=console.debug'],
         exclude: /node_modules/,
       }, {
         test: /\.css$/,
@@ -65,6 +65,7 @@ module.exports = {
       sourceMap: true,
       minimize: true,
       compress: {warnings: false},
+      output: {comments: false},
     }),
 
     // 抽离公共部分
