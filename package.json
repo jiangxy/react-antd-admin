@@ -19,7 +19,7 @@
     "frontend"
   ],
   "devDependencies": {
-    "antd": "2.6.1",
+    "antd": "2.7.1",
     "babel-core": "^6.21.0",
     "babel-eslint": "6.0.0",
     "babel-loader": "^6.2.10",
@@ -29,6 +29,7 @@
     "babel-preset-react": "^6.16.0",
     "babel-preset-stage-0": "^6.16.0",
     "compression-webpack-plugin": "0.3.2",
+    "cross-env": "3.1.4",
     "css-loader": "0.23.1",
     "eslint": "2.7.0",
     "eslint-config-airbnb": "6.x",
@@ -47,6 +48,7 @@
     "redux": "3.6.0",
     "redux-logger": "2.7.4",
     "redux-thunk": "2.1.0",
+    "rimraf": "2.5.4",
     "strip-loader": "0.1.2",
     "style-loader": "0.13.1",
     "stylelint": "6.6.0",
@@ -60,8 +62,8 @@
   },
   "scripts": {
     "build": "webpack --progress --colors --display-error-details",
-    "prod": "NODE_ENV=production webpack --progress --colors --config webpack.config.prod.js -p --display-error-details",
-    "clean": "rm -f dist/bundle* dist/vendor* dist/index*",
+    "prod": "cross-env NODE_ENV=production webpack --progress --colors --config webpack.config.prod.js -p --display-error-details",
+    "clean": "rimraf dist/*bundle* dist/*vendor* dist/*index*",
     "dev": "webpack-dev-server --devtool eval --progress --colors --content-base dist --hot --inline --display-error-details",
     "eslint": "eslint --ext .js,.jsx src",
     "stylelint": "stylelint \"src/**/*.css\"",
