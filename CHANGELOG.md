@@ -2,7 +2,7 @@
 
 一些小的优化
 
-* 修复windows下的一些问题 #6
+* 修复windows下的一些问题 [#6](https://github.com/jiangxy/react-antd-admin/issues/6)
 * 引入HtmlWebpackPlugin，不用区分`index.html`和`index-prod.html`了
 * 顶部菜单样式一些调整
 * 想各种办法解决bundle size过大的问题
