@@ -70,11 +70,11 @@
 
 1. 保证node版本5.3+，npm版本3.3+
 2. clone下来后，`npm install`，安装必要的依赖
-3. 参考[src/menu.js](src/menu.js)，按自己的需要配置侧边栏
-4. 修改[src/index.js](src/index.js)中的路由表，保证和侧边栏一致
+3. 参考[src/menu.js](src/menu.js)，按自己的需要配置侧边栏和顶部菜单
+4. 修改[src/index.js](src/index.js)中的路由表，保证和menu.js中的菜单项一致，否则可能404
 5. 如果要用DBTable组件的话，参考[src/schema](src/schema)下的例子，编写自己的querySchema和dataSchema文件。在路由表中配置DBTable组件时，要把表名作为props传入，类似`<Route path="option1" tableName="test" component={DBTable}/>`。
 6. 修改[src/config.js](src/config.js)中相关配置，比如项目名、footer、单点登录等等。
-7. `npm run prod`，编译js文件，然后将dist目录下的`bundle.min.js`和`index-prod.html`拷贝到自己的工程中，前端的工作就完成了。当然我一般会将`index-prod.html`重命名为`index.html`。
+7. `npm run prod`，编译js文件，然后将dist目录下的所有js/css/html文件拷贝到自己的工程中，前端的工作就完成了。一般会有一个index.html，一个bundle.min.css，以及多个js文件，跟是否使用动态路由有关。
 8. 开发后端接口，接口规范见[这里](docs/Ajax.md)。如果是java后端，可以使用[这个工具](https://github.com/jiangxy/react-java-goos)帮你生成。
 9. 启动你的web服务，访问`index.html`查看效果。
 
@@ -91,8 +91,10 @@
 
 权限问题也很麻烦，感觉不太好做成通用的东西，如果有需求的话，还是定制开发比较好。
  
-### 浏览器兼容性
+### 兼容性
 
 能力所限，只能保证chrome中正常使用。。。话说在各种内部系统中，要求只能用chrome也挺常见吧。
 
 如果我解决了兼容性问题，就不是二手前端了。。。
+
+另外由于我是在mac下进行开发的，所以对windows下的情况测试的比较少，有问题欢迎提issue，我尽力解决。
