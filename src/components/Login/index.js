@@ -39,7 +39,7 @@ class Login extends React.PureComponent {
    *
    * @param e
    */
-  handleSubmit = (e) => {
+  handleSubmit = async(e) => {  // async可以配合箭头函数
     e.preventDefault();  // 这个很重要, 防止跳转
     this.setState({requesting: true});
     const hide = message.loading('正在验证...', 0);
@@ -49,21 +49,18 @@ class Login extends React.PureComponent {
     logger.debug('username = %s, password = %s', username, password);
 
     // 服务端验证
-    ajax.post(`${globalConfig.getAPIPath()}${globalConfig.login.validate}`).type('form').send({
-      username,
-      password,
-    }).end((err, res) => {
-      hide();
-      logger.debug('login validate return: error %o result %o', err, res);
+    const res = await ajax.login(username, password);
+    hide();
+    logger.debug('login validate return: result %o', res);
 
-      if (ajax.isSuccess(res)) {
-        // 如果登录成功, 触发一个loginSuccess的action, payload就是登录后的用户名
-        this.props.handleLoginSuccess(res.body.data);
-      } else {
-        message.error(`登录失败: ${res.body.message}, 请联系管理员`);
-        this.setState({requesting: false});
-      }
-    });
+    if (res.success) {
+      message.success('登录成功');
+      // 如果登录成功, 触发一个loginSuccess的action, payload就是登录后的用户名
+      this.props.handleLoginSuccess(res.data);
+    } else {
+      message.error(`登录失败: ${res.message}, 请联系管理员`);
+      this.setState({requesting: false});
+    }
   };
 
   render() {
