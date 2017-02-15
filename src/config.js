@@ -14,7 +14,15 @@ module.exports = {
   footer: '<a target="_blank" href="http://jxy.me">foolbear</a>版权所有 © 2015-2099',  // footer中显示的字, 可以嵌入html标签
 
   debug: true,  // 是否开启debug模式, 不会请求后端接口, 使用mock的数据
-  logLevel: 'info',  // 日志级别, 目前支持debug/info/warn/error 4种级别
+
+  log: {
+    level: 'info',  // 日志级别, 类似slf4j中的root logger, 目前支持debug/info/warn/error 4种级别
+    // 除了root logger以外, 也可以为每个logger单独设置级别
+    debug: [],
+    info: [],
+    warn: [],
+    error: ['loggerA', 'loggerB'],  // 示例, 对于loggerA和loggerB使用error级别, 其他logger使用默认的info级别
+  },
 
   api: {  // 对后端请求的相关配置
     host: 'http://remoteHost:8080',  // 调用ajax接口的地址, 默认值空, 如果是跨域的, 服务端要支持CORS

@@ -31,8 +31,14 @@ class Logger {
   /*暂存所有logger*/
   static loggerMap = new Map();
 
+  // 是否为某些logger单独指定了日志级别?
+  static debugLoggers = new Set();
+  static infoLoggers = new Set();
+  static warnLoggers = new Set();
+  static errorLoggers = new Set();
+
   /*默认的logger*/
-  static defaultLogger = new Logger();
+  static defaultLogger = new Logger();  // 注意这一行代码的位置, 必须在所有Map/Set声明完毕之后
 
   /**
    * 获取一个Logger实例
@@ -57,8 +63,27 @@ class Logger {
 
   constructor(name) {
     this.name = name;  // logger的名字
-    const configLogLevel = globalConfig.logLevel;
 
+    // 是否单独设置了这个logger的日志级别?
+    if (Logger.debugLoggers.has(name)) {
+      this.logLevel = Logger.LOG_LEVEL_DEBUG;
+      return;
+    }
+    if (Logger.infoLoggers.has(name)) {
+      this.logLevel = Logger.LOG_LEVEL_INFO;
+      return;
+    }
+    if (Logger.warnLoggers.has(name)) {
+      this.logLevel = Logger.LOG_LEVEL_WARN;
+      return;
+    }
+    if (Logger.errorLoggers.has(name)) {
+      this.logLevel = Logger.LOG_LEVEL_ERROR;
+      return;
+    }
+
+    // 如果没有单独设置, 就使用root logger level
+    const configLogLevel = globalConfig.log.level;
     if (configLogLevel === 'debug') {
       this.logLevel = Logger.LOG_LEVEL_DEBUG;
     } else if (configLogLevel === 'info') {
@@ -164,5 +189,14 @@ class Logger {
     console.warn.apply(console, args);
   }
 }
+
+// 初始化Logger类中的一些static变量, 类似java中的static代码块
+['debug', 'info', 'warn', 'error'].forEach((level) => {
+  if (globalConfig.log[level]) {
+    for (const logger of globalConfig.log[level]) {
+      Logger[`${level}Loggers`].add(logger);
+    }
+  }
+});
 
 export default Logger;
