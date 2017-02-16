@@ -70,7 +70,7 @@ class App extends React.Component {
       } catch (e) {
         // 如果网络请求出错, 弹出一个错误提示
         hide();
-        message.error(`请求出错: ${e.message}`);
+        message.error(`网络请求出错: ${e.message}`);
         logger.error('getCurrentUser error, %o', e);
         this.setState({tryingLogin: false});
       }

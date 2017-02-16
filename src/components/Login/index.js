@@ -64,7 +64,7 @@ class Login extends React.PureComponent {
       }
     } catch (exception) {
       hide();
-      message.error(`请求出错: ${exception.message}`);
+      message.error(`网络请求出错: ${exception.message}`);
       logger.error('login error, %o', exception);
       this.setState({requesting: false});
     }
