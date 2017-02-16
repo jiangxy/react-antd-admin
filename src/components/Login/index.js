@@ -48,17 +48,24 @@ class Login extends React.PureComponent {
     const password = this.state.password;
     logger.debug('username = %s, password = %s', username, password);
 
-    // 服务端验证
-    const res = await ajax.login(username, password);
-    hide();
-    logger.debug('login validate return: result %o', res);
+    try {
+      // 服务端验证
+      const res = await ajax.login(username, password);
+      hide();
+      logger.debug('login validate return: result %o', res);
 
-    if (res.success) {
-      message.success('登录成功');
-      // 如果登录成功, 触发一个loginSuccess的action, payload就是登录后的用户名
-      this.props.handleLoginSuccess(res.data);
-    } else {
-      message.error(`登录失败: ${res.message}, 请联系管理员`);
+      if (res.success) {
+        message.success('登录成功');
+        // 如果登录成功, 触发一个loginSuccess的action, payload就是登录后的用户名
+        this.props.handleLoginSuccess(res.data);
+      } else {
+        message.error(`登录失败: ${res.message}, 请联系管理员`);
+        this.setState({requesting: false});
+      }
+    } catch (exception) {
+      hide();
+      message.error(`请求出错: ${exception.message}`);
+      logger.error('login error, %o', exception);
       this.setState({requesting: false});
     }
   };

@@ -29,7 +29,7 @@ class Ajax {
   requestWrapper(method, url, {params, data, headers} = {}) {
     logger.debug('method=%s, url=%s, params=%o, data=%o, headers=%o', method, url, params, data, headers);
     return new Promise((resolve, reject) => {
-      const tmp = superagent[method](url);
+      const tmp = superagent(method, url);
       // 是否是跨域请求
       if (globalConfig.isCrossDomain()) {
         tmp.withCredentials();

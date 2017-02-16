@@ -39,32 +39,40 @@ class App extends React.Component {
     if (!this.props.login) {
       const hide = message.loading('正在获取用户信息...', 0);
 
-      // 先去服务端验证下, 说不定已经登录了
-      const res = await ajax.getCurrentUser();
+      try {
+        // 先去服务端验证下, 说不定已经登录了
+        const res = await ajax.getCurrentUser();
 
-      // 注意这里, debug模式下每次刷新都必须重新登录
-      if (res.success && !globalConfig.debug) {
-        hide();
-        // 这里不需要setState了, 因为setState的目的是为了re-render, 而下一句会触发redux的状态变化, 也会re-render
-        // 所以直接修改状态, 就是感觉这么做有点奇怪...
-        this.state.tryingLogin = false;
-        // App组件也可能触发loginSuccess action
-        this.props.handleLoginSuccess(res.data);
-      } else {
-        // 如果服务端说没有登录, 就要跳转到sso或者login组件
-        if (globalConfig.isSSO()) {
-          // debug模式不支持调试单点登录
-          // 因为没有单点登录的地址啊...跳不回来
+        // 注意这里, debug模式下每次刷新都必须重新登录
+        if (res.success && !globalConfig.debug) {
           hide();
-          logger.debug('not login, redirect to SSO login page');
-          const redirect = encodeURIComponent(window.location.href);
-          window.location.href = `${globalConfig.login.sso}${redirect}`;
+          // 这里不需要setState了, 因为setState的目的是为了re-render, 而下一句会触发redux的状态变化, 也会re-render
+          // 所以直接修改状态, 就是感觉这么做有点奇怪...
+          this.state.tryingLogin = false;
+          // App组件也可能触发loginSuccess action
+          this.props.handleLoginSuccess(res.data);
         } else {
-          hide();
-          message.error('获取用户信息失败, 请重新登录');
-          logger.debug('not login, redirect to Login component');
-          this.setState({tryingLogin: false});
+          // 如果服务端说没有登录, 就要跳转到sso或者login组件
+          if (globalConfig.isSSO()) {
+            // debug模式不支持调试单点登录
+            // 因为没有单点登录的地址啊...跳不回来
+            hide();
+            logger.debug('not login, redirect to SSO login page');
+            const redirect = encodeURIComponent(window.location.href);
+            window.location.href = `${globalConfig.login.sso}${redirect}`;
+          } else {
+            hide();
+            message.error('获取用户信息失败, 请重新登录');
+            logger.debug('not login, redirect to Login component');
+            this.setState({tryingLogin: false});
+          }
         }
+      } catch (e) {
+        // 如果网络请求出错, 弹出一个错误提示
+        hide();
+        message.error(`请求出错: ${e.message}`);
+        logger.error('getCurrentUser error, %o', e);
+        this.setState({tryingLogin: false});
       }
     }
   }
