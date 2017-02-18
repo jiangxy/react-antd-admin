@@ -48,6 +48,10 @@ module.exports = {
     autoMenuSwitch: true,  // 只展开一个顶级菜单, 其他顶级菜单自动折叠
   },
 
+  DBTable: {  // DBTable组件相关配置
+    pageSize: 50, // 表格每页显示多少条数据
+  },
+
   // 以下一些辅助的函数, 不要修改
   // 不能使用箭头函数, 会导致this是undefined
 

@@ -4,7 +4,7 @@ import {Pagination, Select} from 'antd';
 /**
  * 内部分页器组件
  */
-class InnerPagination extends React.Component {
+class InnerPagination extends React.PureComponent {
 
   render() {
     // 有些状态要传到父组件中去处理
