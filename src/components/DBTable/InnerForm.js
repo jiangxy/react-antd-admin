@@ -1,258 +1,75 @@
 import React from 'react';
 import {
   Form,
-  Input,
+  Icon,
   Row,
   Col,
   Button,
-  DatePicker,
-  Select,
-  Icon,
-  Radio,
-  InputNumber,
-  Checkbox,
   message,
   Upload,
   notification
 } from 'antd';
 import globalConfig from 'config.js';
+import FormSchemaUtils from './InnerFormSchemaUtils';
 import Logger from '../../utils/Logger';
 
-const FormItem = Form.Item;
-const RadioGroup = Radio.Group;
-const CheckboxGroup = Checkbox.Group;
-const Option = Select.Option;
+// 这个组件的实现还是有点技巧的, 因为对于不同的schema要显示不同的表单项, 不同表的schema肯定是不同的
+// 我最开始是将InnerForm做成一个大的组件, 但这意味着必须要在render方法里解析schema, 虽然能实现功能, 但不完美, 效率也会比较差
+// 而且antd的form是controlled components, 每输入一个字符都要重新render一次, 意味着每输入一个字符都要重新解析一次schema, 很蛋疼
+// 这种实现见我以前的代码
+
+// 在表名不变的情况下, schema也是固定的, 能不能只解析一次, 之后每次复用呢?
+// 绞尽脑汁想到一个办法, 将每个表的表单都做成一个单独的组件, 这个组件是根据schema动态生成的, 在InnerForm的render方法中, 根据当前表名选择对应的组件去渲染
+// 这样对InnerForm而言, 每个表单都是黑盒了, 不用关心里面的状态了
+// 但要生成antd的表单必须配合一个getFieldDecorator函数, 很难搞, 不能简单的做到模版/数据的分离
+// 我甚至考虑过是不是在编译期去解决, 根据schema动态生成js文件之类的, 但这样太麻烦, 最好是能在运行时搞定, 也考虑过eval方法之类的
+// 后来参考了函数式语言的惰性求值, 终于想到一个解决办法, 解析schema后不返回具体的元素, 而是返回一个回调函数, 这个函数的参数是getFieldDecorator
+// 在真正render的时候, 将getFieldDecorator作为参数传进去
+
+// 此外, 还有一些问题, 比如如何动态生成组件, 如何获取表单的值之类的, 最后也都一一找到办法, 真是不容易...
+// 应用的一些技巧: 高阶函数/高阶组件/ref/闭包
 
 const logger = Logger.getLogger('InnerForm');
+
+// 暂存每个表对应的schema callback, 解析schema是个代价较大的操作, 应该尽量复用
+const schemaMap = new Map();
+// 暂存每个表对应的表单组件, key是表名, value是对应的react组件
+const formMap = new Map();
+
+/**
+ * 动态生成表单对应的react组件
+ *
+ * @param tableName
+ * @param schema
+ * @returns {*}
+ */
+const createForm = (tableName, schema) => {
+  // 如何动态生成一个组件? 如果用class的写法, 似乎不行...
+  // 只能用传统的ES5的写法, 函数式组件应该也可以, 但是我需要生命周期相关方法
+  const tmpComponent = React.createClass({
+    componentWillMount() {
+      // 组件初始化时读取schema
+      if (schemaMap.has(tableName)) {
+        this.schemaCallback = schemaMap.get(tableName);
+        return;
+      }
+      const schemaCallback = FormSchemaUtils.parse(schema);
+      schemaMap.set(tableName, schemaCallback);
+      this.schemaCallback = schemaCallback;
+    },
+    render() {
+      // render的时候传入getFieldDecorator, 生成最终的jsx元素
+      return this.schemaCallback(this.props.form.getFieldDecorator);
+    },
+  });
+  // 注意要再用antd的create()方法包装下
+  return Form.create()(tmpComponent);
+};
 
 /**
  * 内部表单组件
  */
-class InnerForm extends React.Component {
-
-  // 本来想在初始化时解析schema, 结果发现不行
-  // 解析schema的过程还是改到render里了
-
-  /**
-   * 辅助函数, 将一个input元素包装下
-   *
-   * @param formItem
-   * @param field
-   * @returns {XML}
-   */
-  colWrapper = (formItem, field) => {
-    //const {getFieldProps, getFieldError, isFieldValidating} = this.props.form;
-    return (
-      <Col key={field.key} sm={8}>
-        <FormItem key={field.key} label={field.title} labelCol={{ span: 10 }} wrapperCol={{ span: 14 }}>
-          {formItem}
-        </FormItem>
-      </Col>
-    );
-  }
-
-  /**
-   * 将schema中的一列转换为下拉框
-   *
-   * @param field
-   */
-  transformSelect = (field) => {
-    // TODO: 这里是否要做schema校验
-    const options = [];
-    const {getFieldProps} = this.props.form;
-
-    logger.debug('transform field %o to Select component', field);
-    field.options.forEach((option) => {
-      options.push(<Option key={option.key} value={option.key}>{option.value}</Option>);
-    });
-
-    return this.colWrapper((
-      <Select placeholder={field.placeholder || '请选择'} size="default" {...getFieldProps(field.key)}>
-        {options}
-      </Select>
-    ), field);
-  }
-
-  /**
-   * 将schema中的一列转换为单选框
-   *
-   * @param field
-   */
-  transformRadio = (field) => {
-    const options = [];
-    const {getFieldProps} = this.props.form;
-
-    logger.debug('transform field %o to Radio component', field);
-    field.options.forEach((option) => {
-      options.push(<Radio key={option.key} value={option.key}>{option.value}</Radio>);
-    });
-
-    return this.colWrapper((
-      <RadioGroup {...getFieldProps(field.key)}>
-        {options}
-      </RadioGroup>
-    ), field);
-  }
-
-  /**
-   * 将schema中的一列转换为checkbox
-   *
-   * @param field
-   */
-  transformCheckbox = (field) => {
-    const options = [];
-    const {getFieldProps} = this.props.form;
-
-    logger.debug('transform field %o to Checkbox component', field);
-    field.options.forEach((option) => {
-      options.push({label: option.value, value: option.key});
-    });
-
-    return this.colWrapper((
-      <CheckboxGroup options={options} {...getFieldProps(field.key)}/>
-    ), field);
-  }
-
-  /**
-   * 转换为下拉多选框
-   *
-   * @param field
-   * @returns {XML}
-   */
-  transformMultiSelect = (field) => {
-    const options = [];
-    const {getFieldProps} = this.props.form;
-
-    logger.debug('transform field %o to MultipleSelect component', field);
-    field.options.forEach((option) => {
-      options.push(<Option key={option.key} value={option.key}>{option.value}</Option>);
-    });
-
-    return this.colWrapper((
-      <Select multiple placeholder={field.placeholder || '请选择'} size="default" {...getFieldProps(field.key)}>
-        {options}
-      </Select>
-    ), field);
-  }
-
-  /**
-   * 将schema中的一列转换为普通输入框
-   *
-   * @param field
-   * @returns {XML}
-   */
-  transformNormal = (field) => {
-    const {getFieldProps} = this.props.form;
-    switch (field.dataType) {
-      case 'int':
-        logger.debug('transform field %o to integer input component', field);
-        return this.colWrapper((
-          <InputNumber size="default" {...getFieldProps(field.key)}/>
-        ), field);
-      case 'float':
-        logger.debug('transform field %o to float input component', field);
-        return this.colWrapper((
-          <InputNumber step={0.01} size="default" {...getFieldProps(field.key)}/>
-        ), field);
-      case 'datetime':
-        logger.debug('transform field %o to datetime input component', field);
-        return this.colWrapper((
-          <DatePicker showTime format="yyyy-MM-dd HH:mm:ss"
-                      placeholder={field.placeholder || '请选择日期'} {...getFieldProps(field.key)}/>
-        ), field);
-      default:  // 默认就是普通的输入框
-        logger.debug('transform field %o to varchar input component', field);
-        return this.colWrapper((
-          <Input placeholder={field.placeholder} size="default" {...getFieldProps(field.key)}/>
-        ), field);
-    }
-  }
-
-  /**
-   * 也是个辅助函数, 由于是范围查询, 输入的formItem是两个, 一个用于begin一个用于end
-   *
-   * @param beginFormItem
-   * @param endFormItem
-   * @param field
-   * @returns {XML}
-   */
-  betweenColWrapper = (beginFormItem, endFormItem, field) => {
-    // 布局真是个麻烦事
-    // col内部又用了一个row做布局
-    // const {getFieldProps} = this.props.form;
-    return (
-      <Col key={`${field.key}Begin`} sm={8}>
-        <Row>
-          <Col span={16}>
-            <FormItem key={`${field.key}Begin`} label={field.title} labelCol={{ span: 15 }} wrapperCol={{ span: 9 }}>
-              {beginFormItem}
-            </FormItem>
-          </Col>
-          <Col span={7} offset={1}>
-            <FormItem key={`${field.key}End`} labelCol={{ span: 10 }} wrapperCol={{ span: 14 }}>
-              {endFormItem}
-            </FormItem>
-          </Col>
-        </Row>
-      </Col>
-    );
-  }
-
-  /**
-   * between类型比较特殊, 普通元素每个宽度是8, int和float的between元素宽度也是8, 但datetime类型的between元素宽度是16
-   * 否则排版出来不能对齐, 太丑了, 逼死强迫症
-   * 而且普通的transform函数返回是一个object, 而这个函数返回是一个array, 就是因为datetime的between要占用两列
-   *
-   * @param field
-   */
-  transformBetween = (field) => {
-    const cols = [];
-    let beginFormItem;
-    let endFormItem;
-    const {getFieldProps} = this.props.form;
-
-    switch (field.dataType) {
-      case 'int':
-        logger.debug('transform field %o to integer BETWEEN component', field);
-        beginFormItem = (<InputNumber size="default"
-                                      placeholder={field.placeholderBegin || '最小值'} {...getFieldProps(`${field.key}Begin`)}/>);
-        endFormItem = (<InputNumber size="default"
-                                    placeholder={field.placeholderEnd || '最大值'} {...getFieldProps(`${field.key}End`)}/>);
-        cols.push(this.betweenColWrapper(beginFormItem, endFormItem, field));
-        break;
-      case 'float':
-        logger.debug('transform field %o to float BETWEEN component', field);
-        beginFormItem = (<InputNumber step={0.01} size="default"
-                                      placeholder={field.placeholderBegin || '最小值'} {...getFieldProps(`${field.key}Begin`)}/>);
-        endFormItem = (<InputNumber step={0.01} size="default"
-                                    placeholder={field.placeholderEnd || '最大值'} {...getFieldProps(`${field.key}End`)}/>);
-        cols.push(this.betweenColWrapper(beginFormItem, endFormItem, field));
-        break;
-      // datetime类型的between要占用两个Col
-      // 不写辅助函数了, 直接这里写jsx吧...
-      case 'datetime':
-        logger.debug('transform field %o to datetime BETWEEN component', field);
-        cols.push(
-          <Col key={`${field.key}Begin`} sm={8}>
-            <FormItem key={`${field.key}Begin`} label={field.title} labelCol={{ span: 10 }} wrapperCol={{ span:14 }}>
-              <DatePicker showTime format="YYYY-MM-DD HH:mm:ss"
-                          placeholder={field.placeholderBegin || '开始日期'} {...getFieldProps(`${field.key}Begin`)}/>
-            </FormItem>
-          </Col>
-        );
-        cols.push(<Col key={`${field.key}End`} sm={8}>
-          <FormItem key={`${field.key}End`} labelCol={{ span: 10 }} wrapperCol={{ span:14 }}>
-            <DatePicker showTime format="YYYY-MM-DD HH:mm:ss"
-                        placeholder={field.placeholderEnd || '结束日期'} {...getFieldProps(`${field.key}End`)}/>
-          </FormItem>
-        </Col>);
-        break;
-      default:
-        // 理论上来说不会出现这种情况
-        logger.error('unknown dataType: %s', field.dataType);
-    }
-    return cols;
-  }
+class InnerForm extends React.PureComponent {
 
   /**
    * 表单的查询条件不能直接传给后端, 要处理一下
@@ -284,18 +101,24 @@ class InnerForm extends React.Component {
    */
   handleSubmit = (e) => {
     e.preventDefault();
-
-    const oldObj = this.props.form.getFieldsValue();
+    // 这种用法是非官方的, 直接从代码里扒出来的...
+    // this.formComponent是通过ref方式获取到的一个react组件
+    const oldObj = this.formComponent.getFieldsValue();
     const newObj = this.filterQueryObj(oldObj);
 
     // 还是要交给上层组件处理, 因为要触发table组件的状态变化...
     this.props.parentHandleSubmit(newObj);
-  }
+  };
 
+  /**
+   * 清空表单的值
+   *
+   * @param e
+   */
   handleReset = (e) => {
     e.preventDefault();
-    this.props.form.resetFields();
-  }
+    this.formComponent.resetFields();
+  };
 
   /**
    * 处理数据导入
@@ -338,7 +161,7 @@ class InnerForm extends React.Component {
         });
       }
     }
-  }
+  };
 
   /**
    * 处理数据导出
@@ -347,8 +170,7 @@ class InnerForm extends React.Component {
    */
   handleExport = (e) => {
     e.preventDefault();
-
-    const oldObj = this.props.form.getFieldsValue();
+    const oldObj = this.formComponent.getFieldsValue();
     const newObj = this.filterQueryObj(oldObj);
 
     // 导出前必须选定了一些查询条件, 不允许导出全表
@@ -362,58 +184,19 @@ class InnerForm extends React.Component {
     // 坏处是我就不知道用户的下载是否成功了
     const url = `${globalConfig.getAPIPath()}/${this.props.tableName}/export`;
     window.open(`${url}?q=${encodeURIComponent(JSON.stringify(newObj))}`);  // 注意url编码
-  }
+  };
+
 
   render() {
-    const rows = [];
-    let cols = [];
+    const {tableName, schema, tableConfig} = this.props;
 
-    // 参见antd的布局, 每行被分为24个格子
-    // 普通的字段每个占用8格, between类型的字段每个占用16格
-    let spaceLeft = 24;
-    this.props.schema.forEach((field)=> {
-      // 当前列需要占用几个格子? 普通的都是8, 只有datetime between是16
-      let spaceNeed = 8;
-      if (field.showType === 'between' && field.dataType === 'datetime') {
-        spaceNeed = 16;
-      }
-
-      // 如果当前行空间不足, 就换行
-      if (spaceLeft < spaceNeed) {
-        rows.push(<Row key={rows.length} gutter={16}>{cols}</Row>);
-        cols = [];  // 不知array有没有clear之类的方法
-        spaceLeft = 24;  // 剩余空间重置
-      }
-
-      // 开始push各种FormItem
-      switch (field.showType) {
-        case 'select':
-          cols.push(this.transformSelect(field));
-          break;
-        case 'radio':
-          cols.push(this.transformRadio(field));
-          break;
-        case 'checkbox':
-          cols.push(this.transformCheckbox(field));
-          break;
-        case 'multiSelect':
-          cols.push(this.transformMultiSelect(field));
-          break;
-        case 'between':
-          for (const col of this.transformBetween(field)) {  // between类型比较特殊, 返回的是一个数组
-            cols.push(col)
-          }
-          break;
-        default:
-          cols.push(this.transformNormal(field));
-      }
-
-      spaceLeft -= spaceNeed;
-    });
-
-    // 别忘了最后一行
-    if (cols.length > 0) {
-      rows.push(<Row key={rows.length} gutter={16}>{cols}</Row>);
+    // 根据当前的tableName, 获取对应的表单组件
+    let FormComponent = null;
+    if (formMap.has(tableName)) {
+      FormComponent = formMap.get(tableName);
+    } else {
+      FormComponent = createForm(tableName, schema);
+      formMap.set(tableName, FormComponent);
     }
 
     // 上传相关配置
@@ -426,24 +209,23 @@ class InnerForm extends React.Component {
 
     // 表单的前面是一堆输入框, 最后一行是按钮
     return (
-      <Form horizontal className="ant-advanced-search-form">
-        {rows}
+      <div className="ant-advanced-search-form">
+        {/*这个渲染组件的方法很有意思, 另外注意这里的ref*/}
+        <FormComponent ref={(input) => { this.formComponent = input; }}/>
         <Row>
           <Col span={12} offset={12} style={{ textAlign: 'right' }}>
             <Button type="primary" onClick={this.handleSubmit}><Icon type="search"/>查询</Button>
             <Button onClick={this.handleReset}><Icon type="cross"/>清除条件</Button>
-            {this.props.tableConfig.showExport ?
+            {tableConfig.showExport ?
               <Button onClick={this.handleExport}><Icon type="export"/>导出</Button> : ''}
-            {this.props.tableConfig.showImport ?
+            {tableConfig.showImport ?
               <Upload {...uploadProps}><Button><Icon type="upload"/>导入</Button></Upload> : ''}
           </Col>
         </Row>
-      </Form>
+      </div>
     );
   }
 
 }
-
-InnerForm = Form.create()(InnerForm);  // antd中的表单组件还要这么包装一层
 
 export default InnerForm;
