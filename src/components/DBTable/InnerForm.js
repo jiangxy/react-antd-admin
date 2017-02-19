@@ -10,6 +10,7 @@ import {
   notification
 } from 'antd';
 import globalConfig from 'config.js';
+import moment from 'moment';  // antd@2.0之后, 日期相关的都变成moment对象了, 以前是Date对象
 import FormSchemaUtils from './InnerFormSchemaUtils';
 import Logger from '../../utils/Logger';
 
@@ -85,11 +86,14 @@ class InnerForm extends React.PureComponent {
         // 对于js的日期类型, 要转换成字符串再传给后端
         if (oldObj[key] instanceof Date) {
           newObj[key] = oldObj[key].format('yyyy-MM-dd HH:mm:ss');
+        } else if (moment.isMoment(oldObj[key])) {  // 处理moment对象
+          newObj[key] = oldObj[key].format('YYYY-MM-DD HH:mm:ss');
         } else {
           newObj[key] = oldObj[key];
         }
       }
     }
+    console.log(newObj);
     logger.debug('old queryObj: %o, new queryObj %o', oldObj, newObj);
     return newObj;
   }

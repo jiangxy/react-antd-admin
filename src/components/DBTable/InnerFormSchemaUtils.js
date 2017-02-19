@@ -284,7 +284,7 @@ const SchemaUtils = {
         logger.debug('transform field %o to datetime BETWEEN component', field);
         // 只能返回一个顶层元素
         return getFieldDecorator => (
-          <div>
+          <div key={'datetimeBetweenDiv'}>
             <Col key={`${field.key}Begin`} sm={8}>
               <FormItem key={`${field.key}Begin`} label={field.title} labelCol={{ span: 10 }}
                         wrapperCol={{ span:14 }}>
