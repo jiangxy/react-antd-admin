@@ -30,6 +30,8 @@ import Logger from '../../utils/Logger';
 // 此外, 还有一些问题, 比如如何动态生成组件, 如何获取表单的值之类的, 最后也都一一找到办法, 真是不容易...
 // 应用的一些技巧: 高阶函数/高阶组件/ref/闭包
 
+// 但表单项一多还是会有点卡...
+
 const logger = Logger.getLogger('InnerForm');
 
 // 暂存每个表对应的schema callback, 解析schema是个代价较大的操作, 应该尽量复用
@@ -93,7 +95,6 @@ class InnerForm extends React.PureComponent {
         }
       }
     }
-    console.log(newObj);
     logger.debug('old queryObj: %o, new queryObj %o', oldObj, newObj);
     return newObj;
   }
