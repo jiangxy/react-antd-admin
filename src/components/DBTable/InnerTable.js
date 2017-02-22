@@ -135,6 +135,25 @@ class InnerTable extends React.PureComponent {
     const newCols = [];
     const fieldMap = new Map();
     schema.forEach((field) => {
+      // 在表格中显示的时候, 要将radio/checkbox之类的转换为文字
+      // 比如schema中配置的是{key:1, value:haha}, 后端返回的值是1, 但前端展示时要换成haha
+      if (field.options) {
+        const optionMap = {};
+        for (const option of field.options) {
+          optionMap[option.key] = option.value;
+        }
+        // 这样$$的前缀表示是内部的临时变量, 我觉得这种挺蛋疼的, 但没啥好办法...
+        field.$$optionMap = optionMap;
+      }
+
+      // 有点类似索引
+      fieldMap.set(field.key, field);
+      // 当前列是否是主键?
+      if (field.primary) {
+        this.primaryKey = field.key;
+        toCache.primaryKey = field.key;
+      }
+
       // 不需要在表格中展示
       if (field.showInTable === false) {
         return;
@@ -147,14 +166,8 @@ class InnerTable extends React.PureComponent {
         col.render = field.render;
       }
       newCols.push(col);
-      // 当前列是否是主键?
-      if (field.primary) {
-        this.primaryKey = field.key;
-        toCache.primaryKey = field.key;
-      }
-      // 有点类似索引
-      fieldMap.set(field.key, field);
     });
+
     this.tableSchema = newCols;
     this.fieldMap = fieldMap;
     toCache.tableSchema = this.tableSchema;
@@ -171,7 +184,7 @@ class InnerTable extends React.PureComponent {
     const newData = [];
     let i = 0;
     props.data.forEach((obj) => {
-      const newObj = Object.assign({}, obj);
+      const newObj = this.transformData(obj);
       if (this.primaryKey) {
         newObj.key = obj[this.primaryKey];
       } else {
@@ -180,10 +193,39 @@ class InnerTable extends React.PureComponent {
       }
       newData.push(newObj);
     });
+
     // 在这里, 下面两种写法是等效的, 因为parseTableData方法只会被componentWillReceiveProps调用, 而componentWillReceiveProps的下一步就是判断是否re-render
     // 但要注意, 不是任何情况下都等效
     //this.setState({data: newData});
     this.state.data = newData;
+  }
+
+  /**
+   * 将后端返回的一条数据转换为前端表格中能显示的一条数据
+   */
+  transformData(obj) {
+    const newObj = {};
+
+    // 这段代码真是好蛋疼...
+    for (const key in obj) {
+      if (this.fieldMap.get(key).$$optionMap) {
+        const optionMap = this.fieldMap.get(key).$$optionMap;
+        if (obj[key] instanceof Array) {
+          const newArray = [];
+          for (const optionKey of obj[key]) {
+            newArray.push(optionMap[optionKey]);
+          }
+          newObj[key] = newArray.join(',');
+        } else {
+          newObj[key] = optionMap[obj[key]];
+        }
+      } else {
+        newObj[key] = obj[key];
+      }
+    }
+
+    newObj.$$rawData = obj;  // 原始数据还是要保存下的, 后面update会用到
+    return newObj;
   }
 
 
@@ -231,11 +273,11 @@ class InnerTable extends React.PureComponent {
       for (const record of this.state.data) {  // 找到被选择的那条记录
         if (record.key === selectedKey) {
           // Object.assign(newData, record);  // 不能直接assign了, 因为日期要特殊处理
-          for (const key in record) {
-            if (this.fieldMap.has(key) && this.fieldMap.get(key).dataType === 'datetime') {  // 判断是否是日期类型的字段
-              newData[key] = moment(record[key]);
+          for (const key in record.$$rawData) {
+            if (this.fieldMap.get(key).dataType === 'datetime') {  // 判断是否是日期类型的字段
+              newData[key] = moment(record.$$rawData[key]);
             } else {
-              newData[key] = record[key];
+              newData[key] = record.$$rawData[key];
             }
           }
           break;
@@ -373,14 +415,16 @@ class InnerTable extends React.PureComponent {
         for (const record of this.state.data) {
           newData.push(record);
         }
+
+        const transformedData = this.transformData(res.data);
         // 表格中的每条记录都必须有个唯一的key, 否则会有warn, 如果有主键就用主键, 否则只能随便给个
         // 如果key有重复的, 会有warn, 显示也会有问题, 所以后端接口要注意下, 如果DB主键都能重复, 也只能呵呵了...
         if (this.primaryKey) {
-          res.data.key = res.data[this.primaryKey];
+          transformedData.key = res.data[this.primaryKey];
         } else {
-          res.data.key = Math.floor(Math.random() * 233333);  // MAGIC NUMBER
+          transformedData.key = Math.floor(Math.random() * 233333);  // MAGIC NUMBER
         }
-        newData.push(res.data);
+        newData.push(transformedData);
         this.setState({selectedRowKeys: [], data: newData});
       } else {
         this.error(res.message);
@@ -409,11 +453,15 @@ class InnerTable extends React.PureComponent {
         });
 
         // 数据变化后, 刷新下表格
+        const transformedData = this.transformData(obj);
         const newData = [];
         const keySet = new Set(this.state.selectedRowKeys);  // array转set
         for (const record of this.state.data) {
           if (keySet.has(record.key)) {  // 是否是被更新的记录
-            newData.push(Object.assign(record, obj));
+            const newRecord = Object.assign({}, record, transformedData); // 这个应该是浅拷贝
+            newRecord.$$rawData = Object.assign({}, record.$$rawData, transformedData.$$rawData);
+            logger.debug('newRecord = %o', newRecord);
+            newData.push(newRecord);
           } else {
             newData.push(record);
           }

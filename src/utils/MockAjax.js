@@ -47,16 +47,40 @@ const mockResult = (tableName, queryObj) => {
     const record = {};
     // 为了让mock的数据有些区别, 把page算进去
     schema.forEach((column) => {
-      if (column.dataType === 'int') {
-        record[column.key] = 1000 * queryObj.page + i;
-      } else if (column.dataType === 'float') {
-        record[column.key] = 2.0 * queryObj.page + i * 0.01;
-      } else if (column.dataType === 'varchar') {
-        record[column.key] = `page=${queryObj.page} num=${i}`;
-      } else if (column.dataType === 'datetime') {
-        record[column.key] = new Date().plusDays(i).format('yyyy-MM-dd HH:mm:ss');
-      } else {
-        logger.error('unsupported dataType %s', column.dataType);
+      // 生成mock数据还是挺麻烦的, 要判断showType和dataType
+      switch (column.showType) {
+        case 'select':
+          record[column.key] = mockOption(column);
+          break;
+        case 'radio':
+          record[column.key] = mockOption(column);
+          break;
+        case 'checkbox':
+          record[column.key] = mockOptionArray(column);
+          break;
+        case 'multiSelect':
+          record[column.key] = mockOptionArray(column);
+          break;
+        case 'textarea':
+          record[column.key] = `mock page=${queryObj.page} ${i}`;
+          break;
+        default:
+          switch (column.dataType) {
+            case 'int':
+              record[column.key] = 1000 * queryObj.page + i;
+              break;
+            case 'float':
+              record[column.key] = new Number(2.0 * queryObj.page + i * 0.1).toFixed(2);
+              break;
+            case 'varchar':
+              record[column.key] = `mock page=${queryObj.page} ${i}`;
+              break;
+            case 'datetime':
+              record[column.key] = new Date().plusDays(i).format('yyyy-MM-dd HH:mm:ss');
+              break;
+            default:
+              logger.error('unsupported dataType %s', column.dataType);
+          }
       }
     });
     tmp.push(record);
@@ -64,6 +88,22 @@ const mockResult = (tableName, queryObj) => {
 
   result.success = true;
   result.data = tmp;
+};
+
+// 模拟radio/select的数据
+const mockOption = (field) => {
+  const rand = Math.floor(Math.random() * field.options.length);
+  return field.options[rand].key;
+};
+
+// 模拟checkbox/multiSelect的数据
+const mockOptionArray = (field) => {
+  const rand = Math.floor(Math.random() * field.options.length);
+  const mockResult = [];
+  for (let i = 0; i <= rand; i++) {
+    mockResult.push(field.options[i].key);
+  }
+  return mockResult;
 };
 
 /**
