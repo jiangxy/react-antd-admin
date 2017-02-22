@@ -43,7 +43,7 @@ const SchemaUtils = {
       </Form>);
     };
   },
-  
+
   colWrapper(formItem, field) {
     return getFieldDecorator => (
       <FormItem key={field.key} label={field.title} labelCol={{ span: 4 }} wrapperCol={{ span: 20 }}>
@@ -75,7 +75,7 @@ const SchemaUtils = {
       case 'datetime':
         logger.debug('transform field %o to datetime input', field);
         return this.colWrapper(getFieldDecorator => getFieldDecorator(field.key)(
-          <DatePicker showTime format="yyyy-MM-dd HH:mm:ss" placeholder={field.placeholder || '请选择日期'}/>
+          <DatePicker showTime format="YYYY-MM-DD HH:mm:ss" placeholder={field.placeholder || '请选择日期'}/>
         ), field);
       default:  // 默认就是普通的输入框
         logger.debug('transform field %o to varchar input', field);

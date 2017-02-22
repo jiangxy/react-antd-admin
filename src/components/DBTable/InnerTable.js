@@ -17,9 +17,10 @@ import InnerTableSchemaUtils from './InnerTableSchemaUtils';
 const logger = Logger.getLogger('InnerTable');
 
 // 跟InnerForm类似, InnerTable也将parse schema的过程独立出来
-const tableSchemaMap = new Map();
-const formSchemaMap = new Map();
-const formMap = new Map();
+const tableSchemaMap = new Map();  // key是tableName, value是表格的schema
+const formSchemaMap = new Map();  // key是tableName, value是表单的schema callback
+const formMap = new Map();  // key是tableName, value是对应的react组件
+const schemaFieldMap = new Map();  // key是tableName, value是另一个map(key是field.key, value是field)
 
 /**
  * 动态生成表单对应的react组件
@@ -117,10 +118,12 @@ class InnerTable extends React.PureComponent {
     // 怎么感觉我在到处做缓存啊...工程化风格明显
     if (tableSchemaMap.has(tableName)) {
       this.tableSchema = tableSchemaMap.get(tableName);
+      this.fieldMap = schemaFieldMap.get(tableName);
       return;
     }
 
     const newCols = [];
+    const fieldMap = new Map();
     schema.forEach((field) => {
       const col = {};
       col.key = field.key;
@@ -135,9 +138,13 @@ class InnerTable extends React.PureComponent {
         this.primaryKey = field.key;
         this.primaryKeyType = field.dataType;
       }
+      // 有点类似索引
+      fieldMap.set(field.key, field);
     });
     this.tableSchema = newCols;
+    this.fieldMap = fieldMap;
     tableSchemaMap.set(tableName, newCols);
+    schemaFieldMap.set(tableName, fieldMap);
   }
 
   /**
@@ -208,7 +215,14 @@ class InnerTable extends React.PureComponent {
       const selectedKey = this.state.selectedRowKeys[0];
       for (const record of this.state.data) {  // 找到被选择的那条记录
         if (record.key === selectedKey) {
-          Object.assign(newData, record);
+          // Object.assign(newData, record);  // 不能直接assign了, 因为日期要特殊处理
+          for (const key in record) {
+            if (this.fieldMap.has(key) && this.fieldMap.get(key).dataType === 'datetime') {  // 判断是否是日期类型的字段
+              newData[key] = moment(record[key]);
+            } else {
+              newData[key] = record[key];
+            }
+          }
           break;
         }
       }
