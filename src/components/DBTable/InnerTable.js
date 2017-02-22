@@ -135,6 +135,10 @@ class InnerTable extends React.PureComponent {
     const newCols = [];
     const fieldMap = new Map();
     schema.forEach((field) => {
+      // 不需要在表格中展示
+      if (field.showInTable === false) {
+        return;
+      }
       const col = {};
       col.key = field.key;
       col.dataIndex = field.key;
