@@ -59,7 +59,7 @@ class DBTable extends React.PureComponent {
 
   // 在react router中切换时, 组件不会重新mount, 只有props会变化
   componentWillReceiveProps(nextProps) {
-    // FIXME: 在react router中切换时, 这个方法会被触发两次, 不知道为啥, 但似乎没啥不良影响, 不会造成两次render, 因为这个组件是pure component
+    // FIXME: 在react router中切换时, 这个方法会被触发两次, 不知道为啥, 但似乎没啥不良影响, 就是可能会造成重复的render影响效率, 以后应该通过shouldComponentUpdate优化下
     logger.debug('receive new props and try to render, nextProps = %o', nextProps);
 
     // 在表名切换后要做什么?

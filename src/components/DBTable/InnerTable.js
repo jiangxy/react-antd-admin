@@ -1,75 +1,172 @@
 import React from 'react';
 import {
   Form,
-  Input,
   Button,
-  DatePicker,
-  Select,
   Table,
   Icon,
-  Radio,
-  InputNumber,
-  Checkbox,
   Modal,
   message,
   notification,
   Affix
 } from 'antd';
-import globalConfig from 'config.js';
 import Logger from '../../utils/Logger';
 import ajax from '../../utils/ajax';
-
-const FormItem = Form.Item;
-const ButtonGroup = Button.Group;
+import moment from 'moment';
+import InnerTableSchemaUtils from './InnerTableSchemaUtils';
 
 const logger = Logger.getLogger('InnerTable');
+
+// 跟InnerForm类似, InnerTable也将parse schema的过程独立出来
+const tableSchemaMap = new Map();
+const formSchemaMap = new Map();
+const formMap = new Map();
+
+/**
+ * 动态生成表单对应的react组件
+ *
+ * @param tableName
+ * @param schema
+ * @returns {*}
+ */
+const createForm = (tableName, schema) => {
+  const tmpComponent = React.createClass({
+    componentWillMount() {
+      if (formSchemaMap.has(tableName)) {
+        this.schemaCallback = formSchemaMap.get(tableName);
+        return;
+      }
+      const schemaCallback = InnerTableSchemaUtils.parse(schema);
+      formSchemaMap.set(tableName, schemaCallback);
+      this.schemaCallback = schemaCallback;
+    },
+    // 表单挂载后, 给表单一个初始值
+    componentDidMount(){
+      if (this.props.initData) {  // 这种方法都能想到, 我tm都佩服自己...
+        this.props.form.setFieldsValue(this.props.initData);
+      }
+    },
+    render() {
+      return this.schemaCallback(this.props.form.getFieldDecorator);
+    },
+  });
+  return Form.create()(tmpComponent);
+};
 
 /**
  * 内部表格组件
  */
-class InnerTable extends React.Component {
+class InnerTable extends React.PureComponent {
 
-  // 很多时候都要在antd的组件上再包一层
+  // 对于InnerTable组件而言, 既有表格又有表单
+  // 虽然传进来的是dataSchema, 但要parse两次, 分别变成表格和表单的schema
+
   state = {
     modalVisible: false,  // modal是否可见
     modalTitle: '新增',  // modal标题
     modalInsert: true,  // 当前modal是用来insert还是update
 
     selectedRowKeys: [],  // 当前有哪些行被选中, 这里只保存key
-    selectedRows: [],  // 当前有哪些行被选中, 保存完整数据
+    data: [],  // 表格中显示的数据
   };
 
   /**
-   * InnerTable组件的重render有两种可能:
-   * 1. 上层组件调用的render方法, 这个时候会触发componentWillReceiveProps方法
-   * 2. 自身状态变化引起的重新render
-   * 注意区分
+   * 组件初次挂载时parse schema
+   */
+  componentWillMount() {
+    this.parseTableSchema(this.props);
+    this.parseTableData(this.props);
+  }
+
+  /**
+   * InnerTable组件的re-render有两种情况: 自身状态变化导致的render vs 父组件导致的render
+   * 正常情况下, 只有父组件导致的render才会触发这个方法, InnerTable自身的变化应该不会触发
    *
-   * 对于第一种情况, 要将组件的状态还原到初始状态
+   * 父组件触发这个方法也有两种情况:
+   * 1. 只有data变化, 比如改变了查询条件/分页等等
+   * 2. schema和data都变化了, 比如在react router中切换了菜单项
    *
    * @param nextProps
    */
-  componentWillReceiveProps = (nextProps) => {
+  componentWillReceiveProps(nextProps) {
     logger.debug('receive new props and try to render, nextProps=%o', nextProps);
-    // 其实传入的props和当前的props可能是一样的, 这个方法不会判断修改才触发
-    // 要自己判断props是否有变化
+    // 之前因为antd的Form组件搞了一些黑盒操作, 表单每输入一次都会触发这个方法, 现在表单独立成一个组件了, 应该好了
 
-    // 蛋疼的是, 要区分是上层组件引起的这个方法调用还是InnerTable组件本身引起的
-    // 本来自身的变化是不应该触发的, 但不知antd的form组件做了什么, 每次给表单设置值的时候就会触发, 我讨厌黑盒...
-    // 利用了一个特性: 如果是上层触发的, tableLoading必定是true
-    if (nextProps.tableLoading === true) {
-      // 所有状态都要手动还原到初始值
-      // 这个方法里setState不会触发render
-      this.setState({
-        modalVisible: false,
-        modalTitle: '新增',
-        modalInsert: true,
+    // 只有表名变化时才需要重新parse schema
+    if (this.props.tableName !== nextProps.tableName) {
+      logger.debug('tableName changed and try to refresh schema');
+      this.parseTableSchema(nextProps);
+      // 这里要还原初始状态, 理论上来讲, InnerTable所有自己的状态都应该还原, 但其实也是看情况的
+      // 比如这里的this.state.data就不用还原, 因为下面的parseTableData方法会更新this.state.data
 
-        selectedRowKeys: [],
-        selectedRows: [],
-      });
+      // 哪些状态做成this.xxx, 哪些做成this.state.xxx, 还是有点迷惑的, 如果全都塞到state里是不是不太好
+      this.formComponent = undefined;
+      this.state.modalVisible = false;
+      this.state.modalTitle = '新增';
+      this.state.modalInsert = true;
+      this.state.selectedRowKeys = [];
     }
+    this.parseTableData(nextProps);  // 数据是每次都要重新parse的
   }
+
+  /**
+   * 解析表格的schema
+   */
+  parseTableSchema(props) {
+    const {tableName, schema} = props;
+    // 做一层缓存
+    // 怎么感觉我在到处做缓存啊...工程化风格明显
+    if (tableSchemaMap.has(tableName)) {
+      this.tableSchema = tableSchemaMap.get(tableName);
+      return;
+    }
+
+    const newCols = [];
+    schema.forEach((field) => {
+      const col = {};
+      col.key = field.key;
+      col.dataIndex = field.key;
+      col.title = field.title;
+      if (field.render) {
+        col.render = field.render;
+      }
+      newCols.push(col);
+      // 当前列是否是主键?
+      if (field.primary) {
+        this.primaryKey = field.key;
+        this.primaryKeyType = field.dataType;
+      }
+    });
+    this.tableSchema = newCols;
+    tableSchemaMap.set(tableName, newCols);
+  }
+
+  /**
+   * 解析表格要显示的数据
+   */
+  parseTableData(props) {
+    // 每行数据都必须有个key属性, 如果指定了主键, 就以主键为key
+    // 否则直接用个自增数字做key
+    const newData = [];
+    let i = 0;
+    props.data.forEach((obj) => {
+      const newObj = Object.assign({}, obj);
+      if (this.primaryKey) {
+        newObj.key = obj[this.primaryKey];
+      } else {
+        newObj.key = i;
+        i++;
+      }
+      newData.push(newObj);
+    });
+    // 在这里, 下面两种写法是等效的, 因为parseTableData方法只会被componentWillReceiveProps调用, 而componentWillReceiveProps的下一步就是判断是否re-render
+    // 但要注意, 不是任何情况下都等效
+    //this.setState({data: newData});
+    this.state.data = newData;
+  }
+
+
+  /*下面是是一些事件处理的方法*/
+
 
   /**
    * 点击新增按钮, 弹出一个内嵌表单的modal
@@ -78,9 +175,19 @@ class InnerTable extends React.Component {
    */
   onClickInsert = (e) => {
     e.preventDefault();
-    this.props.form.resetFields();
-    this.setState({modalVisible: true, modalTitle: '新增', modalInsert: true});
-  }
+    // 注意这里, 由于antd modal的特殊性, this.formComponent可能是undefined, 要判断一下
+    // insert时弹出的表单, 应该是空的
+    if (this.formComponent) {
+      this.formComponent.resetFields();
+    } else {
+      this.formInitData = {};
+    }
+    this.setState({
+      modalVisible: true,
+      modalTitle: '新增',
+      modalInsert: true,
+    });
+  };
 
   /**
    * 点击更新按钮, 弹出一个内嵌表单的modal
@@ -90,18 +197,32 @@ class InnerTable extends React.Component {
    */
   onClickUpdate = (e) => {
     e.preventDefault();
-    this.props.form.resetFields();
+
+    // 要显示在表单中的值
+    const newData = {};
     const multiSelected = this.state.selectedRowKeys.length > 1;  // 是否选择了多项
     // 如果只选择了一项, 就把原来的值填到表单里
     // 否则就只把要更新的主键填到表单里
     if (!multiSelected) {
       logger.debug('update single record, and fill original values');
-      this.props.form.setFieldsValue(this.state.selectedRows.pop());  // FIXME: 理论上来说不应该这样去修改state中的值
+      const selectedKey = this.state.selectedRowKeys[0];
+      for (const record of this.state.data) {  // 找到被选择的那条记录
+        if (record.key === selectedKey) {
+          Object.assign(newData, record);
+          break;
+        }
+      }
     } else {
-      const tmpObj = {};
-      tmpObj[this.primaryKey] = this.state.selectedRowKeys.join(', ');
-      logger.debug('update multiple records, keys = %s', tmpObj[this.primaryKey]);
-      this.props.form.setFieldsValue(tmpObj);
+      newData[this.primaryKey] = this.state.selectedRowKeys.join(', ');
+      logger.debug('update multiple records, keys = %s', newData[this.primaryKey]);
+    }
+
+    // 和insert时一样, 同样注意这里表单组件可能还未mount, 要判断一下
+    if (this.formComponent) {
+      this.formComponent.resetFields();
+      this.formComponent.setFieldsValue(newData);
+    } else {
+      this.formInitData = newData;
     }
 
     if (multiSelected) {
@@ -109,7 +230,7 @@ class InnerTable extends React.Component {
     } else {
       this.setState({modalVisible: true, modalTitle: '更新', modalInsert: false});
     }
-  }
+  };
 
   /**
    * 点击删除按钮, 弹出一个确认对话框
@@ -127,261 +248,172 @@ class InnerTable extends React.Component {
         this.handleDelete();
       },
     });
-  }
+  };
+
+  /**
+   * 处理表格的选择事件
+   *
+   * @param selectedRowKeys
+   */
+  onTableSelectChange = (selectedRowKeys) => {
+    this.setState({selectedRowKeys});
+  };
 
   /**
    * 隐藏modal
    */
   hideModal = () => {
     this.setState({modalVisible: false});
-  }
+  };
 
   /**
-   * 点击modal中确认按钮的回调
+   * 点击modal中确认按钮的回调, 清洗数据并准备传给后端
    */
   handleModalOk = () => {
-    // 将表单中的undefined去掉
-    // 表单传过来的主键是逗号分隔的字符串, 这里转换成数组
+    // 1. 将表单中的undefined去掉
+    // 2. 转换日期格式
     const newObj = {};
-    const primaryKeyArray = [];
-    const oldObj = this.props.form.getFieldsValue();
-    for (const key in oldObj) {
-      if (!oldObj[key])
-        continue;
 
-      if (key === this.primaryKey && typeof oldObj[key] === 'string') {
-        for (const str of oldObj[key].split(', ')) {
-          // 按schema中的约定, 主键只能是int/varchar
-          if (this.primaryKeyType === 'int') {
-            primaryKeyArray.push(parseInt(str));
-          } else {
-            primaryKeyArray.push(str);
-          }
-        }
+    const oldObj = this.formComponent.getFieldsValue();  // 这里的formComponent必定不是undefined
+    for (const key in oldObj) {
+      if (!oldObj[key]) {
+        continue;
+      }
+
+      // 跟InnerForm中的filterQueryObj方法很相似
+      if (key === this.primaryKey && typeof oldObj[key] === 'string') {  // 我在InnerTableSchemaUtils限制死了, modal中的主键字段必定是个string
+
+        // 对于主键而言, 我本来想在这里转换成array, 后来想想不用, this.state.selectedRowKeys中就已经保存着主键了, 可以直接用
+        // for (const str of oldObj[key].split(', ')) {
+        //   primaryKeyArray.push(str);
+        // }
+        // do nothing
+
+      } else if (oldObj[key] instanceof Date) {
+        newObj[key] = oldObj[key].format('yyyy-MM-dd HH:mm:ss');
+      } else if (moment.isMoment(oldObj[key])) {  // 处理moment对象
+        newObj[key] = oldObj[key].format('YYYY-MM-DD HH:mm:ss');
       } else {
         newObj[key] = oldObj[key];
       }
     }
-    if (this.primaryKey && primaryKeyArray.length > 0) {
-      newObj[this.primaryKey] = primaryKeyArray;
-    }
+
+    // 至此表单中的数据格式转换完毕
     this.hideModal();
     logger.debug('click modal OK and the form obj = %o', newObj);
 
+    // 将转换后的数据传给后端
     if (this.state.modalInsert) {
       this.handleInsert(newObj);
     } else {
       this.handleUpdate(newObj);
     }
-  }
+  };
 
 
   /*下面开始才是真正的数据库操作*/
 
 
-  /**
-   * 真正去处理新增数据
-   */
-  handleInsert = (obj) => {
-    const url = `${globalConfig.getAPIPath()}/${this.props.tableName}/insert`;
-    const hide = message.loading('正在新增...', 0);
-    logger.debug('handleInsert: url = %s, obj = %o', url, obj);
+  error(errorMsg) {
+    // 对于错误信息, 要很明显的提示用户, 这个通知框要用户手动关闭
+    notification.error({
+      message: '出错啦!',
+      description: `请联系管理员, 错误信息: ${errorMsg}`,
+      duration: 0,
+    });
+  }
 
-    ajax.post(url).send(obj).end((err, res) => {
+  /**
+   * 真正去新增数据
+   */
+  async handleInsert(obj) {
+    const CRUD = ajax.CRUD(this.props.tableName);
+    const hide = message.loading('正在新增...', 0);
+    try {
+      const res = await CRUD.insert(obj);
       hide();
-      logger.debug('handleInsert: return error = %o, res = %o', err, res);
-      // err就是一个字符串
-      // res是一个Response对象, 其中的body字段才是服务端真正返回的数据
-      if (err || !res.body.success) {
-        notification.error({
-          message: '新增失败',
-          description: err ? '请求insert接口出错, 请联系管理员' : `请联系管理员, 错误信息: ${res.body.message}`,
+      if (res.success) {
+        notification.success({
+          message: '新增成功',
+          description: this.primaryKey ? `新增数据行 主键=${res.data[this.primaryKey]}` : '',
           duration: 0,
         });
       } else {
-        notification.success({
-          message: '新增成功',
-          description: this.primaryKey ? `新增数据行 主键=${res.body.data[this.primaryKey]}` : '',
-          duration: 0,
-        });
+        this.error(res.message);
       }
-    });
+    } catch (ex) {
+      logger.error('insert exception, %o', ex);
+      hide();
+      this.error(`网络请求出错: ${ex.message}`);
+    }
   }
 
   /**
    * 真正去更新数据
    */
-  handleUpdate = (obj) => {
-    const keys = obj[this.primaryKey];
-    const url = `${globalConfig.getAPIPath()}/${this.props.tableName}/update?keys=${keys instanceof Array ? keys.join(',') : keys}`;
+  async handleUpdate(obj) {
+    const CRUD = ajax.CRUD(this.props.tableName);
     const hide = message.loading('正在更新...', 0);
-    obj[this.primaryKey] = undefined;
-
-    logger.debug('handleUpdate: url = %s, obj = %o', url, obj);
-
-    ajax.post(url).send(obj).end((err, res) => {
+    try {
+      const res = await CRUD.update(this.state.selectedRowKeys, obj);
       hide();
-      logger.debug('handleUpdate: return error = %o, res = %o', err, res);
-
-      if (err || !res.body.success) {
-        notification.error({
-          message: '更新失败',
-          description: err ? '请求update接口出错, 请联系管理员' : `请联系管理员, 错误信息: ${res.body.message}`,
+      if (res.success) {
+        notification.success({
+          message: '更新成功',
+          description: `更新${res.data}条数据`,
           duration: 0,
         });
       } else {
-        notification.success({
-          message: '更新成功',
-          description: `更新${res.body.data}条数据`,
-          duration: 0,
-        });
-        // 更新数据后, 注意刷新下整个页面
-        this.props.refresh();
+        this.error(res.message);
       }
-    });
+    } catch (ex) {
+      logger.error('update exception, %o', ex);
+      hide();
+      this.error(`网络请求出错: ${ex.message}`);
+    }
   }
 
   /**
    * 真正去删除数据
    */
-  handleDelete = () => {
-    const url = `${globalConfig.getAPIPath()}/${this.props.tableName}/delete?keys=${this.state.selectedRowKeys.join(',')}`;
+  async handleDelete() {
+    const CRUD = ajax.CRUD(this.props.tableName);
     const hide = message.loading('正在删除...', 0);
-    logger.debug('handleDelete: url = %s', url);
-
-    ajax.post(url).end((err, res) => {
+    try {
+      const res = await CRUD.delete(this.state.selectedRowKeys);
       hide();
-      logger.debug('handleDelete: return error = %o, res = %o', err, res);
-      if (err || !res.body.success) {
-        notification.error({
-          message: '删除失败',
-          description: err ? '请求delete接口出错, 请联系管理员' : `请联系管理员, 错误信息: ${res.body.message}`,
-          duration: 0,
-        });
-      } else {
+      if (res.success) {
         notification.success({
           message: '删除成功',
-          description: `删除${res.body.data}条数据`,
+          description: `删除${res.data}条数据`,
           duration: 0,
         });
-        // 更新数据后, 注意刷新下整个页面
-        this.props.refresh();
+      } else {
+        this.error(res.message);
       }
-    });
-  }
-
-  /**
-   * 辅助函数
-   *
-   * @param formItem
-   * @param field
-   * @returns {XML}
-   */
-  colWrapper = (formItem, field) => {
-    //const {getFieldProps, getFieldError, isFieldValidating} = this.props.form;
-    return (
-      <FormItem key={field.key} label={field.title} labelCol={{ span: 4 }} wrapperCol={{ span: 20 }}>
-        {formItem}
-      </FormItem>
-    );
-  }
-
-  /**
-   * 将schema中的一个字段转换为表单的一项
-   *
-   * @param field
-   */
-  transFormField = (field) => {
-    const {getFieldProps} = this.props.form;
-
-    // 对于主键, 直接返回一个不可编辑的textarea
-    if (this.primaryKey === field.key) {
-      logger.debug('key %o is primary, transform to text area', field);
-      return this.colWrapper((
-        <Input type="textarea" autosize={{ minRows: 1, maxRows: 10 }} disabled
-               size="default" {...getFieldProps(field.key)}/>
-      ), field);
-    }
-
-    switch (field.dataType) {
-      case 'int':
-        logger.debug('transform field %o to integer input', field);
-        return this.colWrapper((
-          <InputNumber size="default" {...getFieldProps(field.key)}/>
-        ), field);
-      case 'float':
-        logger.debug('transform field %o to float input', field);
-        return this.colWrapper((
-          <InputNumber step={0.01} size="default" {...getFieldProps(field.key)}/>
-        ), field);
-      case 'datetime':
-        logger.debug('transform field %o to datetime input', field);
-        return this.colWrapper((
-          <DatePicker showTime format="yyyy-MM-dd HH:mm:ss"
-                      placeholder={field.placeholder || '请选择日期'} {...getFieldProps(field.key)}/>
-        ), field);
-      default:  // 默认就是普通的输入框
-        logger.debug('transform field %o to varchar input', field);
-        return this.colWrapper((
-          <Input placeholder={field.placeholder} size="default" {...getFieldProps(field.key)}/>
-        ), field);
+    } catch (ex) {
+      logger.error('delete exception, %o', ex);
+      hide();
+      this.error(`网络请求出错: ${ex.message}`);
     }
   }
 
-  /**
-   * 处理表格的选择事件
-   *
-   * @param selectedRowKeys
-   * @param selectedRows
-   */
-  handleSelectChange = (selectedRowKeys, selectedRows) => {
-    this.setState({selectedRowKeys, selectedRows});
-  }
 
   render() {
-    // 解析schema
-    const newCols = [];
-    this.props.schema.forEach((field) => {
-      const col = {};
-      col.key = field.key;
-      col.dataIndex = field.key;
-      col.title = field.title;
-      if (field.render) {
-        col.render = field.render;
-      }
-      newCols.push(col);
-      // 当前列是否是主键?
-      if (field.primary) {
-        this.primaryKey = field.key;
-        this.primaryKeyType = field.dataType;
-      }
-    });
+    const {tableName, schema, tableLoading} = this.props;
 
-    // 对数据也要处理一下
-    // 每行数据都必须有个key属性, 如果指定了主键, 就以主键为key
-    // 否则直接用个自增数字做key
-    const newData = [];
-    let i = 0;
-    this.props.data.forEach((obj) => {
-      const newObj = Object.assign({}, obj);
-      if (this.primaryKey) {
-        newObj.key = obj[this.primaryKey];
-      } else {
-        newObj.key = i;
-        i++;
-      }
-      newData.push(newObj);
-    });
-
-    // 生成表单项
-    const formItems = [];
-    this.props.schema.forEach((field) => {
-      formItems.push(this.transFormField(field));
-    });
+    // 根据当前的tableName, 获取对应的表单组件
+    let FormComponent = null;
+    if (formMap.has(tableName)) {
+      FormComponent = formMap.get(tableName);
+    } else {
+      FormComponent = createForm(tableName, schema);
+      formMap.set(tableName, FormComponent);
+    }
 
     const rowSelection = {
       selectedRowKeys: this.state.selectedRowKeys,
-      onChange: this.handleSelectChange,
+      onChange: this.onTableSelectChange,
     };
 
     const hasSelected = this.state.selectedRowKeys.length > 0;  // 是否选择
@@ -391,7 +423,7 @@ class InnerTable extends React.Component {
       <div>
         <div className="db-table-button">
           <Affix offsetTop={8} target={() => document.getElementById('main-content-div')}>
-            <ButtonGroup>
+            <Button.Group>
               <Button type="primary" onClick={this.onClickInsert}>
                 <Icon type="plus-circle-o"/> 新增
               </Button>
@@ -402,24 +434,21 @@ class InnerTable extends React.Component {
               <Button type="primary" disabled={!hasSelected || !this.primaryKey} onClick={this.onClickDelete}>
                 <Icon type="delete"/> {multiSelected ? '批量删除' : '删除'}
               </Button>
-            </ButtonGroup>
+            </Button.Group>
           </Affix>
+          {/*antd的modal实现中, 如果modal不显示, 那内部的组件是不会mount的, 导致第一次访问this.formComponent会undefined, 而我又需要设置表单的值, 所以新增一个initData属性*/}
           <Modal title={this.state.modalTitle} visible={this.state.modalVisible} onOk={this.handleModalOk}
                  onCancel={this.hideModal}>
-            <Form horizontal>
-              {formItems}
-            </Form>
+            <FormComponent ref={(input) => { this.formComponent = input; }} initData={this.formInitData}/>
           </Modal>
         </div>
 
-        <Table rowSelection={rowSelection} columns={newCols} dataSource={newData} pagination={false}
-               loading={this.props.tableLoading}/>
+        <Table rowSelection={rowSelection} columns={this.tableSchema} dataSource={this.state.data} pagination={false}
+               loading={tableLoading}/>
       </div>
     );
   }
 
 }
-
-InnerTable = Form.create()(InnerTable);
 
 export default InnerTable;
