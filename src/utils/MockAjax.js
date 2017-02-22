@@ -120,7 +120,7 @@ class MockCRUDUtil {
 
   insert(dataObj) {
     return mockPromise(resolve => {
-      mockResult(this.tableName, {page: 99, pageSize: 1});  // 为了生成一个主键, 反正是测试用的
+      mockResult(this.tableName, {page: Math.floor(Math.random() * 10000), pageSize: 1});  // 为了生成一个主键, 反正是测试用的
       const tmpObj = result.data[0];
       Object.assign(tmpObj, dataObj);
       result.success = true;

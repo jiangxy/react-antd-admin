@@ -17,10 +17,10 @@ import InnerTableSchemaUtils from './InnerTableSchemaUtils';
 const logger = Logger.getLogger('InnerTable');
 
 // 跟InnerForm类似, InnerTable也将parse schema的过程独立出来
-const tableSchemaMap = new Map();  // key是tableName, value是表格的schema
+// FIXME: 也许用weak map更合适
+const tableSchemaMap = new Map();  // key是tableName, value是表格的schema, 还有一些额外信息
 const formSchemaMap = new Map();  // key是tableName, value是表单的schema callback
 const formMap = new Map();  // key是tableName, value是对应的react组件
-const schemaFieldMap = new Map();  // key是tableName, value是另一个map(key是field.key, value是field)
 
 /**
  * 动态生成表单对应的react组件
@@ -67,6 +67,7 @@ class InnerTable extends React.PureComponent {
     modalInsert: true,  // 当前modal是用来insert还是update
 
     selectedRowKeys: [],  // 当前有哪些行被选中, 这里只保存key
+    // FIXME: 这里可能会有点问题, 父组件中有一个data, 这里又有一个data, 都表示的是表格中的数据, 两边状态不一致, 可能有潜在的bug
     data: [],  // 表格中显示的数据
   };
 
@@ -96,17 +97,23 @@ class InnerTable extends React.PureComponent {
     if (this.props.tableName !== nextProps.tableName) {
       logger.debug('tableName changed and try to refresh schema');
       this.parseTableSchema(nextProps);
-      // 这里要还原初始状态, 理论上来讲, InnerTable所有自己的状态都应该还原, 但其实也是看情况的
-      // 比如这里的this.state.data就不用还原, 因为下面的parseTableData方法会更新this.state.data
-
-      // 哪些状态做成this.xxx, 哪些做成this.state.xxx, 还是有点迷惑的, 如果全都塞到state里是不是不太好
-      this.formComponent = undefined;
-      this.state.modalVisible = false;
-      this.state.modalTitle = '新增';
-      this.state.modalInsert = true;
-      this.state.selectedRowKeys = [];
+      this.formComponent = undefined;  // 这个别忘了, 如果schema变了, 表单当然也要变
     }
-    this.parseTableData(nextProps);  // 数据是每次都要重新parse的
+
+    // 这里要还原初始状态, 理论上来讲, InnerTable所有自己的状态都应该还原, 但其实也是看情况的
+    // 比如这里的this.state.data就不用还原, 因为下面的parseTableData方法会更新this.state.data
+    // 哪些状态做成this.xxx, 哪些做成this.state.xxx, 还是有点迷惑的, 如果全都塞到state里是不是不太好
+    this.state.modalVisible = false;
+    this.state.modalTitle = '新增';
+    this.state.modalInsert = true;
+    this.state.selectedRowKeys = [];
+
+    // 是否要刷新表格中显示的数据? 这个逻辑还有点绕
+    // 1. 如果schema变化了, 必须刷新数据
+    // 2. 如果schema没变, 但表格要进入loading状态, 就不要刷新数据, 这样用户体验更好
+    if (this.props.tableName !== nextProps.tableName || !nextProps.tableLoading) {
+      this.parseTableData(nextProps);
+    }
   }
 
   /**
@@ -117,11 +124,14 @@ class InnerTable extends React.PureComponent {
     // 做一层缓存
     // 怎么感觉我在到处做缓存啊...工程化风格明显
     if (tableSchemaMap.has(tableName)) {
-      this.tableSchema = tableSchemaMap.get(tableName);
-      this.fieldMap = schemaFieldMap.get(tableName);
+      const fromCache = tableSchemaMap.get(tableName);
+      this.tableSchema = fromCache.tableSchema;
+      this.fieldMap = fromCache.fieldMap;
+      this.primaryKey = fromCache.primaryKey;
       return;
     }
 
+    const toCache = {};
     const newCols = [];
     const fieldMap = new Map();
     schema.forEach((field) => {
@@ -136,15 +146,16 @@ class InnerTable extends React.PureComponent {
       // 当前列是否是主键?
       if (field.primary) {
         this.primaryKey = field.key;
-        this.primaryKeyType = field.dataType;
+        toCache.primaryKey = field.key;
       }
       // 有点类似索引
       fieldMap.set(field.key, field);
     });
     this.tableSchema = newCols;
     this.fieldMap = fieldMap;
-    tableSchemaMap.set(tableName, newCols);
-    schemaFieldMap.set(tableName, fieldMap);
+    toCache.tableSchema = this.tableSchema;
+    toCache.fieldMap = this.fieldMap;
+    tableSchemaMap.set(tableName, toCache);
   }
 
   /**
@@ -350,8 +361,23 @@ class InnerTable extends React.PureComponent {
         notification.success({
           message: '新增成功',
           description: this.primaryKey ? `新增数据行 主键=${res.data[this.primaryKey]}` : '',
-          duration: 0,
+          duration: 3,
         });
+
+        // 数据变化后, 刷新下表格, 我之前是变化后刷新整个页面的, 想想还是只刷新表格比较好
+        const newData = [];
+        for (const record of this.state.data) {
+          newData.push(record);
+        }
+        // 表格中的每条记录都必须有个唯一的key, 否则会有warn, 如果有主键就用主键, 否则只能随便给个
+        // 如果key有重复的, 会有warn, 显示也会有问题, 所以后端接口要注意下, 如果DB主键都能重复, 也只能呵呵了...
+        if (this.primaryKey) {
+          res.data.key = res.data[this.primaryKey];
+        } else {
+          res.data.key = Math.floor(Math.random() * 233333);  // MAGIC NUMBER
+        }
+        newData.push(res.data);
+        this.setState({selectedRowKeys: [], data: newData});
       } else {
         this.error(res.message);
       }
@@ -375,8 +401,20 @@ class InnerTable extends React.PureComponent {
         notification.success({
           message: '更新成功',
           description: `更新${res.data}条数据`,
-          duration: 0,
+          duration: 3,
         });
+
+        // 数据变化后, 刷新下表格
+        const newData = [];
+        const keySet = new Set(this.state.selectedRowKeys);  // array转set
+        for (const record of this.state.data) {
+          if (keySet.has(record.key)) {  // 是否是被更新的记录
+            newData.push(Object.assign(record, obj));
+          } else {
+            newData.push(record);
+          }
+        }
+        this.setState({selectedRowKeys: [], data: newData});
       } else {
         this.error(res.message);
       }
@@ -400,8 +438,18 @@ class InnerTable extends React.PureComponent {
         notification.success({
           message: '删除成功',
           description: `删除${res.data}条数据`,
-          duration: 0,
+          duration: 3,
         });
+
+        // 数据变化后, 刷新下表格
+        const newData = [];
+        const keySet = new Set(this.state.selectedRowKeys);  // array转set
+        for (const record of this.state.data) {
+          if (!keySet.has(record.key)) {  // 是否是被删除的记录
+            newData.push(record);
+          }
+        }
+        this.setState({selectedRowKeys: [], data: newData});
       } else {
         this.error(res.message);
       }
