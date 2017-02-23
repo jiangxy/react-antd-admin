@@ -274,6 +274,10 @@ class InnerTable extends React.PureComponent {
         if (record.key === selectedKey) {
           // Object.assign(newData, record);  // 不能直接assign了, 因为日期要特殊处理
           for (const key in record.$$rawData) {
+            // rawData中可能有些undefined或null的字段, 过滤掉
+            if (!record.$$rawData[key])
+              continue;
+
             if (this.fieldMap.get(key).dataType === 'datetime') {  // 判断是否是日期类型的字段
               newData[key] = moment(record.$$rawData[key]);
             } else {
