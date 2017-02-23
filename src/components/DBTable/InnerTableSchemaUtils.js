@@ -32,6 +32,9 @@ const SchemaUtils = {
   parse(schema) {
     const rows = [];
     schema.forEach((field) => {
+      // 有一些列不需要在表单中展示
+      if (field.showInForm === false)
+        return;
       rows.push(this.transFormField(field));
     });
 

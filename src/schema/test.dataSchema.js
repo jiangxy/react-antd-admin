@@ -46,6 +46,7 @@ module.exports = [
     min: 10,
     defaultValue: 70, // 默认值
     disabled: true,
+    showInForm: false, // 这一列是否要在表单中展示, 默认true. 这种列一般都是不需要用户输入的, DB就会给一个默认值那种
   },
   {
     key: 'gender',
@@ -147,5 +148,6 @@ module.exports = [
     dataType: 'datetime',
     defaultValue: '2017-01-01 11:22:33',
     showInTable: false,
+    showInForm: false,   // 这个只是测试下...如果一列在table和form中都不出现, 那就不如直接去掉
   },
 ];
