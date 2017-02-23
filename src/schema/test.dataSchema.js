@@ -62,6 +62,10 @@ module.exports = [
     dataType: 'varchar',
     showType: 'select',
     options: [{key: 'yes', value: '已婚'}, {key: 'no', value: '未婚'}],
+
+    // 对于dataSchema可以设置校验规则, querySchema不能设置
+    // 设置校验规则, 参考https://github.com/yiminghe/async-validator#rules
+    validator: [{type: 'string', required: true, message: '必须选择婚否!'}],
   },
   {
     key: 'interest',
@@ -70,6 +74,7 @@ module.exports = [
     showType: 'checkbox',
     options: [{key: '1', value: '吃饭'}, {key: '2', value: '睡觉'}, {key: '3', value: '打豆豆'}],
     defaultValue: ['1', '2'],
+    validator: [{type: 'array', required: true, message: '请至少选择一项兴趣'}],
   },
   {
     key: 'good',
@@ -77,6 +82,7 @@ module.exports = [
     dataType: 'varchar',
     showType: 'multiSelect',
     options: [{key: 'lan', value: '懒'}, {key: 'zhai', value: '宅'}],
+    validator: [{type: 'array', required: true, message: '请选择优点'}],
   },
   {
     key: 'pic1',
@@ -109,6 +115,7 @@ module.exports = [
     showType: 'textarea',  // 用于编辑大段的文本
     showInTable: false,
     defaultValue: '个人简介个人简介个人简介',
+    validator: [{type: 'string', max: 20, message: '最长20个字符'}],
   },
   {
     key: 'score',

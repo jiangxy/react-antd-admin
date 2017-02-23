@@ -345,6 +345,14 @@ class InnerTable extends React.PureComponent {
    * 点击modal中确认按钮的回调, 清洗数据并准备传给后端
    */
   handleModalOk = () => {
+    // 提交表单之前, 要先校验下数据
+    let validated = true;
+    this.formComponent.validateFieldsAndScroll((err, values) => validated = err ? false : validated); // 不知道有没有更好的办法
+    if (!validated) {
+      logger.debug('validate form error');
+      return;
+    }
+
     // 1. 将表单中的undefined去掉
     // 2. 转换日期格式
     const newObj = {};

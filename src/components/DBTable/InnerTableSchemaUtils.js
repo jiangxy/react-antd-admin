@@ -94,7 +94,10 @@ const SchemaUtils = {
       options.push(<Option key={option.key} value={option.key}>{option.value}</Option>);
     });
 
-    return this.colWrapper(getFieldDecorator => getFieldDecorator(field.key, {initialValue: field.defaultValue})(
+    return this.colWrapper(getFieldDecorator => getFieldDecorator(field.key, {
+      initialValue: field.defaultValue,
+      rules: field.validator,
+    })(
       <Select placeholder={field.placeholder || '请选择'} size="default" disabled={field.disabled}>
         {options}
       </Select>
@@ -113,7 +116,10 @@ const SchemaUtils = {
       options.push(<Radio key={option.key} value={option.key}>{option.value}</Radio>);
     });
 
-    return this.colWrapper(getFieldDecorator => getFieldDecorator(field.key, {initialValue: field.defaultValue})(
+    return this.colWrapper(getFieldDecorator => getFieldDecorator(field.key, {
+      initialValue: field.defaultValue,
+      rules: field.validator,
+    })(
       <RadioGroup disabled={field.disabled}>
         {options}
       </RadioGroup>
@@ -132,7 +138,10 @@ const SchemaUtils = {
       options.push({label: option.value, value: option.key});
     });
 
-    return this.colWrapper(getFieldDecorator => getFieldDecorator(field.key, {initialValue: field.defaultValue})(
+    return this.colWrapper(getFieldDecorator => getFieldDecorator(field.key, {
+      initialValue: field.defaultValue,
+      rules: field.validator,
+    })(
       <CheckboxGroup options={options} disabled={field.disabled}/>
     ), field);
   },
@@ -150,7 +159,10 @@ const SchemaUtils = {
       options.push(<Option key={option.key} value={option.key}>{option.value}</Option>);
     });
 
-    return this.colWrapper(getFieldDecorator => getFieldDecorator(field.key, {initialValue: field.defaultValue})(
+    return this.colWrapper(getFieldDecorator => getFieldDecorator(field.key, {
+      initialValue: field.defaultValue,
+      rules: field.validator,
+    })(
       <Select multiple placeholder={field.placeholder || '请选择'} size="default" disabled={field.disabled}>
         {options}
       </Select>
@@ -165,7 +177,10 @@ const SchemaUtils = {
    */
   transformTextArea(field) {
     logger.debug('transform field %o to textarea component', field);
-    return this.colWrapper(getFieldDecorator => getFieldDecorator(field.key, {initialValue: field.defaultValue})(
+    return this.colWrapper(getFieldDecorator => getFieldDecorator(field.key, {
+      initialValue: field.defaultValue,
+      rules: field.validator,
+    })(
       <Input type="textarea" placeholder={field.placeholder || '请输入'} autosize={{ minRows: 1, maxRows: 10 }}
              disabled={field.disabled} size="default"/>
     ), field);
@@ -181,25 +196,37 @@ const SchemaUtils = {
     switch (field.dataType) {
       case 'int':
         logger.debug('transform field %o to integer input component', field);
-        return this.colWrapper(getFieldDecorator => getFieldDecorator(field.key, {initialValue: field.defaultValue})(
+        return this.colWrapper(getFieldDecorator => getFieldDecorator(field.key, {
+          initialValue: field.defaultValue,
+          rules: field.validator,
+        })(
           <InputNumber size="default" max={field.max} min={field.min} placeholder={field.placeholder}
                        disabled={field.disabled}/>
         ), field);
       case 'float':
         logger.debug('transform field %o to float input component', field);
-        return this.colWrapper(getFieldDecorator => getFieldDecorator(field.key, {initialValue: field.defaultValue})(
+        return this.colWrapper(getFieldDecorator => getFieldDecorator(field.key, {
+          initialValue: field.defaultValue,
+          rules: field.validator,
+        })(
           <InputNumber step={0.01} size="default" max={field.max} min={field.min} placeholder={field.placeholder}
                        disabled={field.disabled}/>
         ), field);
       case 'datetime':
         logger.debug('transform field %o to datetime input component', field);
-        return this.colWrapper(getFieldDecorator => getFieldDecorator(field.key, {initialValue: field.defaultValue ? moment(field.defaultValue) : null})(
+        return this.colWrapper(getFieldDecorator => getFieldDecorator(field.key, {
+          initialValue: field.defaultValue ? moment(field.defaultValue) : null,
+          rules: field.validator,
+        })(
           <DatePicker showTime format="YYYY-MM-DD HH:mm:ss" placeholder={field.placeholder || '请选择日期'}
                       disabled={field.disabled}/>
         ), field);
       default:  // 默认就是普通的输入框
         logger.debug('transform field %o to varchar input component', field);
-        return this.colWrapper(getFieldDecorator => getFieldDecorator(field.key, {initialValue: field.defaultValue})(
+        return this.colWrapper(getFieldDecorator => getFieldDecorator(field.key, {
+          initialValue: field.defaultValue,
+          rules: field.validator,
+        })(
           <Input placeholder={field.placeholder} size="default" addonBefore={field.addonBefore}
                  addonAfter={field.addonAfter} disabled={field.disabled}/>
         ), field);
