@@ -53,7 +53,7 @@ class App extends React.Component {
           this.props.handleLoginSuccess(res.data);
         } else {
           // 如果服务端说没有登录, 就要跳转到sso或者login组件
-          if (globalConfig.isSSO()) {
+          if (globalConfig.isSSO() && !globalConfig.debug) {
             // debug模式不支持调试单点登录
             // 因为没有单点登录的地址啊...跳不回来
             hide();
