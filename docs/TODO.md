@@ -43,6 +43,7 @@
 - [ ] 导出时要打开新窗口: 研究下[FileSaver.js](https://github.com/eligrey/FileSaver.js/)
 - [ ] 表格最后有一列自定义操作栏
 - [ ] 似乎可以做成云端服务, 用户只需提供配置即可, 不需要自己编译
+- [x] update时不是所有字段都要填
 
 ## 杂项
 
@@ -57,3 +58,4 @@
 - [ ] React Hot Loader 3
 - [ ] prod环境下屏蔽redux-logger
 - [ ] npm run build是不是没啥必要了
+- [x] 更新react-java-goos
