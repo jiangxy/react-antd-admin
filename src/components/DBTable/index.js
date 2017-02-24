@@ -20,6 +20,9 @@ class DBTable extends React.PureComponent {
   static DEFAULT_CONFIG = {
     showExport: true,  // 显示导出按钮, 默认true
     showImport: true,  // 显示导入按钮, 默认true
+    showInsert: true,  // 显示新增按钮, 默认true
+    showUpdate: true,  // 显示修改按钮, 默认true
+    showDelete: true,  // 显示删除按钮, 默认true
   };
 
   // 父组件要保存子组件的状态...非常蛋疼...
@@ -137,7 +140,8 @@ class DBTable extends React.PureComponent {
 
     // 尝试加载个性化配置, 加载失败也没影响
     try {
-      this.tableConfig = require(`../../schema/${tableName}.config.js`);
+      const tableConfig = require(`../../schema/${tableName}.config.js`);
+      this.tableConfig = Object.assign({}, DBTable.DEFAULT_CONFIG, tableConfig);   // 注意合并默认配置
     } catch (e) {
       logger.warn('can not find config for table %s, use default instead', tableName);
       this.tableConfig = DBTable.DEFAULT_CONFIG;

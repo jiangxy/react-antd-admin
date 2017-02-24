@@ -528,7 +528,7 @@ class InnerTable extends React.PureComponent {
 
 
   render() {
-    const {tableName, schema, tableLoading} = this.props;
+    const {tableName, schema, tableLoading, tableConfig} = this.props;
 
     // 根据当前的tableName, 获取对应的表单组件
     let FormComponent = null;
@@ -552,16 +552,19 @@ class InnerTable extends React.PureComponent {
         <div className="db-table-button">
           <Affix offsetTop={8} target={() => document.getElementById('main-content-div')}>
             <Button.Group>
+              {tableConfig.showInsert &&
               <Button type="primary" onClick={this.onClickInsert}>
                 <Icon type="plus-circle-o"/> 新增
-              </Button>
+              </Button>}
               {/* 注意这里, 如果schema中没有定义主键, 不允许update或delete */}
+              {tableConfig.showUpdate &&
               <Button type="primary" disabled={!hasSelected || !this.primaryKey} onClick={this.onClickUpdate}>
                 <Icon type="edit"/> {multiSelected ? '批量修改' : '修改'}
-              </Button>
+              </Button>}
+              {tableConfig.showDelete &&
               <Button type="primary" disabled={!hasSelected || !this.primaryKey} onClick={this.onClickDelete}>
                 <Icon type="delete"/> {multiSelected ? '批量删除' : '删除'}
-              </Button>
+              </Button>}
             </Button.Group>
           </Affix>
           {/*antd的modal实现中, 如果modal不显示, 那内部的组件是不会mount的, 导致第一次访问this.formComponent会undefined, 而我又需要设置表单的值, 所以新增一个initData属性*/}
