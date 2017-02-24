@@ -47,7 +47,7 @@ const createForm = (tableName, schema) => {
       }
     },
     render() {
-      return this.schemaCallback(this.props.form.getFieldDecorator);
+      return this.schemaCallback(this.props.form.getFieldDecorator, this.props.forUpdate);
     },
   });
   return Form.create()(tmpComponent);
@@ -565,7 +565,8 @@ class InnerTable extends React.PureComponent {
           {/*antd的modal实现中, 如果modal不显示, 那内部的组件是不会mount的, 导致第一次访问this.formComponent会undefined, 而我又需要设置表单的值, 所以新增一个initData属性*/}
           <Modal title={this.state.modalTitle} visible={this.state.modalVisible} onOk={this.handleModalOk}
                  onCancel={this.hideModal}>
-            <FormComponent ref={(input) => { this.formComponent = input; }} initData={this.formInitData}/>
+            <FormComponent ref={(input) => { this.formComponent = input; }} initData={this.formInitData}
+                           forUpdate={!this.state.modalInsert}/>
           </Modal>
         </div>
 

@@ -37,7 +37,7 @@ module.exports = [
     placeholder: '请输入用户名',
     addonBefore: (<Icon type="user"/>),
     addonAfter: '切克闹',
-    defaultValue: 'foolbear', // 默认值
+    defaultValue: 'foolbear', // 默认值, 只在insert时生效, update时不生效
   },
   {
     key: 'weight',
@@ -148,6 +148,7 @@ module.exports = [
     dataType: 'datetime',
     defaultValue: '2017-01-01 11:22:33',
     showInTable: false,
-    showInForm: false,   // 这个只是测试下...如果一列在table和form中都不出现, 那就不如直接去掉
+    showInForm: false,   // 这个只是测试下...如果一列在table和form中都不出现, 那就不如直接去掉.
+    // 另外showInForm=false时, 很多针对form的字段都没意义了, 比如defaultValue/placeholder/validator等等
   },
 ];
