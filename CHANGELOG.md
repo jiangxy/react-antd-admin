@@ -7,11 +7,11 @@
   * 使用了一些[HOC](https://facebook.github.io/react/docs/higher-order-components.html)之类的技巧, 将parse schema的过程独立出来, 效率应该会好很多
   * 优化querySchema, 可以配置图标/默认值等, 参考[test.querySchema.js](src/schema/test.querySchema.js)
   * 优化dataSchema, 支持showType属性, 支持配置默认值/校验规则/disabled等, 参考[test.dataSchema.js](src/schema/test.dataSchema.js)
-  * 优化tableConfig, 新增showInsert/showUpdate/showDelete配置, 参考[test.config.js](src/schema/test.config.js)和[DBTable.DEFAULT_CONFIG](/src/components/DBTable/index.js#L20)
+  * 优化tableConfig, 新增showInsert/showUpdate/showDelete配置, 参考[test.config.js](src/schema/test.config.js)和[DBTable.DEFAULT_CONFIG](src/components/DBTable/index.js#L20)
   * insert/update/delete后, 不再刷新整个表格
   * 其他用户体验上的优化
 * 重写mock数据的逻辑
-* 更新了[react-java-goos](https://github.com/jiangxy/react-java-goos)
+* 更新[react-java-goos](https://github.com/jiangxy/react-java-goos)到1.1.0
 * 一些bugfix
 
 详见[DEMO](http://jiangxy.github.io/react-antd-admin)
