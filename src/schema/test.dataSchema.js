@@ -77,6 +77,7 @@ module.exports = [
     options: [{key: '1', value: '吃饭'}, {key: '2', value: '睡觉'}, {key: '3', value: '打豆豆'}],
     defaultValue: ['1', '2'],
     validator: [{type: 'array', required: true, message: '请至少选择一项兴趣'}],
+    width: 120,  // 指定这一列的宽度
   },
   {
     key: 'good',
@@ -132,6 +133,7 @@ module.exports = [
     dataType: 'float',
     max: 9.9,
     placeholder: '哈哈',
+    width: 50,
   },
   {
     key: 'birthday',

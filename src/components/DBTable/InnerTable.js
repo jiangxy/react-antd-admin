@@ -162,6 +162,7 @@ class InnerTable extends React.PureComponent {
       col.key = field.key;
       col.dataIndex = field.key;
       col.title = field.title;
+      col.width = field.width;
       if (field.render) {
         col.render = field.render;
       }
