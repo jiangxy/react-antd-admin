@@ -59,3 +59,12 @@ Date.prototype.plusDays = function (num) {
   tmp.setDate(this.getDate() + num);
   return tmp;
 };
+
+// 为了克服js的一些坑...
+const Utils = {
+  isString(s) {
+    return typeof(s) === 'string' || s instanceof String;
+  },
+};
+
+export default Utils;

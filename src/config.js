@@ -43,6 +43,11 @@ module.exports = {
     logout: '/logout',  // 退出的url, 用户点击退出时, 浏览器会直接跳转到这个链接
   },
 
+  upload: {  // 上传相关配置
+    image: '/uploadImage',  // 默认的上传图片接口
+    imageSizeLimit: 1500,  // 默认的图片大小限制, 单位KB
+  },
+
   sidebar: {  // 侧边栏相关配置
     collapsible: true,  // 是否显示折叠侧边栏的按钮
     autoMenuSwitch: true,  // 只展开一个顶级菜单, 其他顶级菜单自动折叠
