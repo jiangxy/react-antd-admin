@@ -12,7 +12,7 @@ const logger = Logger.getLogger('PictureWall');
  *
  * 这个组件可以配合antd的FormItem使用, 以后可以参考
  */
-class PictureWall extends React.Component {
+class ImageUploader extends React.Component {
 
   // 注意这个组件不能做成PureComponent, 会有bug, 因为上传的过程中会不断触发onChange, 进而导致状态不断变化
 
@@ -279,7 +279,7 @@ class PictureWall extends React.Component {
 
 }
 
-PictureWall.propTypes = {
+ImageUploader.propTypes = {
   max: React.PropTypes.number.isRequired,  // 最多可以上传几张图片
   sizeLimit: React.PropTypes.number,  // 图片的大小限制, 单位KB
   onChange: React.PropTypes.func,  // 图片上传后的回调函数, 传入参数是图片的url
@@ -294,8 +294,8 @@ PictureWall.propTypes = {
   url: React.PropTypes.string,  // 自定义图片的上传地址
 };
 
-PictureWall.defaultProps = {
+ImageUploader.defaultProps = {
   max: 1,  // 默认只上传一张图片
 };
 
-export default PictureWall;
+export default ImageUploader;
