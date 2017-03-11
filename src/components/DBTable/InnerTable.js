@@ -10,8 +10,10 @@ import {
   Affix
 } from 'antd';
 import Logger from '../../utils/Logger';
+import Utils from '../../utils';
 import ajax from '../../utils/ajax';
 import moment from 'moment';
+import ImageSlider from '../ImageSlider';
 import InnerTableSchemaUtils from './InnerTableSchemaUtils';
 
 const logger = Logger.getLogger('InnerTable');
@@ -69,6 +71,10 @@ class InnerTable extends React.PureComponent {
     selectedRowKeys: [],  // 当前有哪些行被选中, 这里只保存key
     // FIXME: 这里可能会有点问题, 父组件中有一个data, 这里又有一个data, 都表示的是表格中的数据, 两边状态不一致, 可能有潜在的bug
     data: [],  // 表格中显示的数据
+
+    // 图片预览相关状态
+    previewVisible: false,  // 是否显示图片预览modal
+    previewImages: [], // 要预览的图片
   };
 
   /**
@@ -163,8 +169,11 @@ class InnerTable extends React.PureComponent {
       col.dataIndex = field.key;
       col.title = field.title;
       col.width = field.width;
+      // 后端返回的数据, 在表格中要如何展示?
       if (field.render) {
-        col.render = field.render;
+        col.render = field.render;  // 用户自己配置的render最优先
+      } else if (field.showType === 'image') {  // 对于某些showType我会给个默认的render
+        col.render = this.renderImage;
       }
       newCols.push(col);
     });
@@ -175,6 +184,45 @@ class InnerTable extends React.PureComponent {
     toCache.fieldMap = this.fieldMap;
     tableSchemaMap.set(tableName, toCache);
   }
+
+
+  /*下面是一些默认的render方法*/
+  // FIXME: 其实render的作用和transformData有些重复, 要不要合并下?
+
+  /**
+   * 针对image字段的render方法
+   *
+   * @param text
+   * @returns {*}
+   */
+  renderImage = (text) => {
+    if (Utils.isString(text)) {
+      return <img src={text} style={{width: '100%'}} onClick={() => this.onClickImage(text)}/>
+    } else if (text instanceof Array) {
+      // 如果是多张图片, 只取第一张图片在表格中显示
+      return <img src={text[0]} style={{width: '100%'}} onClick={() => this.onClickImage(text)}/>
+    } else {
+      return text;
+    }
+  };
+
+  onClickImage = (text) => {
+    const newImageArray = [];
+    if (Utils.isString(text)) {
+      newImageArray.push({url: text, alt: '加载失败', description: text.substr(text.lastIndexOf('/'))});
+    } else if (text instanceof Array) {
+      for (const tmp of text) {
+        newImageArray.push({url: tmp, alt: '加载失败', description: tmp.substr(tmp.lastIndexOf('/'))});
+      }
+    }
+    this.setState({previewVisible: true, previewImages: newImageArray});
+  };
+
+  cancelPreview = () => {
+    this.setState({previewVisible: false});
+  };
+  /*END*/
+
 
   /**
    * 解析表格要显示的数据
@@ -575,6 +623,10 @@ class InnerTable extends React.PureComponent {
                            forUpdate={!this.state.modalInsert}/>
           </Modal>
         </div>
+
+        <Modal visible={this.state.previewVisible} footer={null} onCancel={this.cancelPreview}>
+          <ImageSlider items={this.state.previewImages}/>
+        </Modal>
 
         <Table rowSelection={rowSelection} columns={this.tableSchema} dataSource={this.state.data} pagination={false}
                loading={tableLoading}/>

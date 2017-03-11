@@ -64,6 +64,9 @@ const mockResult = (tableName, queryObj) => {
         case 'textarea':
           record[column.key] = `mock page=${queryObj.page} ${i}`;
           break;
+        case 'image':
+          record[column.key] = mockImage(column);
+          break;
         default:
           switch (column.dataType) {
             case 'int':
@@ -104,6 +107,23 @@ const mockOptionArray = (field) => {
     mockResult.push(field.options[i].key);
   }
   return mockResult;
+};
+
+// 几张测试用的图片, 生成数据时会随机从这里面挑选
+const testImageArray = ['http://jxy.me/about/avatar.jpg', 'http://jxy.me/about/avatar.jpg', 'http://jxy.me/about/avatar.jpg', 'http://jxy.me/about/avatar.jpg', 'http://jxy.me/about/avatar.jpg'];
+// 模拟图片数据
+const mockImage = (field) => {
+  const rand = Math.floor(Math.random() * testImageArray.length);
+  // 返回的是array还是string?
+  if (field.max > 1) {
+    const mockResult = [];
+    for (let i = 0; i <= rand; i++) {
+      mockResult.push(testImageArray[i]);
+    }
+    return mockResult;
+  } else {
+    return testImageArray[rand];
+  }
 };
 
 /**

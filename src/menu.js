@@ -24,7 +24,7 @@ const sidebarMenu = [
       },
       {
         key: 'option2',
-        name: '短信表管理',
+        name: '图片DEMO',
         icon: 'android',
       },
       {

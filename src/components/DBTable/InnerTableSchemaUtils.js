@@ -8,6 +8,7 @@ import {
   InputNumber,
   Checkbox
 } from 'antd';
+import ImageUploader from '../ImageUploader';
 import moment from 'moment';
 import Logger from '../../utils/Logger';
 
@@ -102,6 +103,8 @@ const SchemaUtils = {
         return this.transformMultiSelect(field);
       case 'textarea':
         return this.transformTextArea(field);
+      case 'image':
+        return this.transformImage(field);
       default:
         return this.transformNormal(field);
     }
@@ -208,6 +211,22 @@ const SchemaUtils = {
     })(
       <Input type="textarea" placeholder={field.placeholder || '请输入'} autosize={{ minRows: 1, maxRows: 10 }}
              disabled={field.disabled} size="default"/>
+    ), field);
+  },
+
+  /**
+   * 转换为图片上传组件
+   *
+   * @param field
+   * @returns {XML}
+   */
+  transformImage(field) {
+    logger.debug('transform field %o to image component', field);
+    return this.colWrapper((getFieldDecorator, forUpdate) => getFieldDecorator(field.key, {
+      initialValue: forUpdate ? undefined : field.defaultValue,
+      rules: forUpdate ? field.$$updateValidator : field.validator,
+    })(
+      <ImageUploader max={field.max} url={field.url} sizeLimit={field.sizeLimit}/>
     ), field);
   },
 

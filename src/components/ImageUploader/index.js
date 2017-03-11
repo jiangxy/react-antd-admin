@@ -5,7 +5,7 @@ import Utils from '../../utils';
 import Logger from '../../utils/Logger.js';
 import './index.less';
 
-const logger = Logger.getLogger('PictureWall');
+const logger = Logger.getLogger('ImageUploader');
 
 /**
  * 图片上传组件, 样式基本是从antd官网抄过来的
@@ -147,6 +147,7 @@ class ImageUploader extends React.Component {
    */
   beforeUpload = (file) => {
     const sizeLimit = this.props.sizeLimit || globalConfig.upload.imageSizeLimit;
+    logger.debug('sizeLimit = %s', sizeLimit);
     if (sizeLimit) {
       if (file.size / 1024 > sizeLimit) {
         message.error(`图片过大，最大只允许${sizeLimit}KB`);
