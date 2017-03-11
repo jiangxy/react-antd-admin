@@ -1,4 +1,4 @@
 module.exports = {
-  showExport: false,  // 显示导出按钮, 默认true
-  showDelete: false,  // 显示修改按钮, 默认true
+  showExport: false,  // 是否显示导出按钮, 默认true
+  showDelete: false,  // 是否显示删除按钮, 默认true
 }

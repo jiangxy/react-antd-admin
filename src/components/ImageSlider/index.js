@@ -20,6 +20,12 @@ class ImageSlider extends React.PureComponent {
     );
   }
 
+  componentWillReceiveProps() {
+    // 每次从外界传新的图片过来时, 都要还原状态
+    this.state.currentIndex = 0;
+    this.state.previousIndex = 0;
+  }
+
   /**
    * 滑动到指定index
    */
@@ -218,18 +224,20 @@ class ImageSlider extends React.PureComponent {
         </div>
 
         {/*下方圆点*/}
+        {this.props.items.length > 1 &&
         <div className="image-gallery-bullets">
           <ul className="image-gallery-bullets-container">
             {bullets}
           </ul>
-        </div>
+        </div>}
 
         {/*右上角index*/}
+        {this.props.items.length > 1 &&
         <div className="image-gallery-index">
           <span className="image-gallery-index-current">{this.state.currentIndex + 1}</span>
           <span className="image-gallery-index-separator">{' / '}</span>
           <span className="image-gallery-index-total">{this.props.items.length}</span>
-        </div>
+        </div>}
       </div>
     );
 

@@ -131,8 +131,9 @@ class InnerTable extends React.PureComponent {
     // 怎么感觉我在到处做缓存啊...工程化风格明显
     if (tableSchemaMap.has(tableName)) {
       const fromCache = tableSchemaMap.get(tableName);
-      this.tableSchema = fromCache.tableSchema;
       this.fieldMap = fromCache.fieldMap;
+      // 对于tableSchema, 即使命中了缓存, 也要重新设置下render函数
+      this.tableSchema = this.bindTableColRender(fromCache.tableSchema);
       this.primaryKey = fromCache.primaryKey;
       return;
     }
@@ -169,17 +170,21 @@ class InnerTable extends React.PureComponent {
       col.dataIndex = field.key;
       col.title = field.title;
       col.width = field.width;
-      // 后端返回的数据, 在表格中要如何展示?
-      if (field.render) {
-        col.render = field.render;  // 用户自己配置的render最优先
-      } else if (field.showType === 'image') {  // 对于某些showType我会给个默认的render
-        col.render = this.renderImage;
-      }
+      // 我本来想在解析schema的时候配置一下render然后加到缓存里
+      // 但如果render中使用了this指针就会有问题
+      // 比如用户先使用DBTable组件, 这时会解析schema并缓存, 然后用户通过侧边栏切换到其他组件, DBTable组件unmount
+      // 这时render函数中的this, 就指向这个被unmount的组件了, 就算再重新切回DBTable, 也是重新mount的一个新的组件了
+      // 换句话说, render函数不能缓存, 必须每次解析schema后重新设置render
+      // js的this是一个很迷的问题...参考:http://bonsaiden.github.io/JavaScript-Garden/zh/#function.this
+
+      //if (field.render) {
+      //  col.render = field.render;
+      //}
       newCols.push(col);
     });
 
-    this.tableSchema = newCols;
     this.fieldMap = fieldMap;
+    this.tableSchema = this.bindTableColRender(newCols);
     toCache.tableSchema = this.tableSchema;
     toCache.fieldMap = this.fieldMap;
     tableSchemaMap.set(tableName, toCache);
@@ -187,7 +192,28 @@ class InnerTable extends React.PureComponent {
 
 
   /*下面是一些默认的render方法*/
-  // FIXME: 其实render的作用和transformData有些重复, 要不要合并下?
+  // FIXME: 其实render的作用和transformData有些重复, 要不要考虑合并下?
+
+  /**
+   * 设置tableSchema的render属性
+   *
+   * @param tableSchema
+   * @returns {*}
+   */
+  bindTableColRender(tableSchema) {
+    tableSchema.forEach(col => {
+      const field = this.fieldMap.get(col.key);
+      // 用户自己配置的render最优先
+      if (field && field.render) {
+        col.render = field.render.bind(this);  // 给用户的render手动绑定this
+      }
+      // 对于某些showType我会给个默认的render
+      else if (field.showType === 'image') {
+        col.render = this.renderImage;
+      }
+    });
+    return tableSchema;
+  }
 
   /**
    * 针对image字段的render方法
@@ -209,10 +235,10 @@ class InnerTable extends React.PureComponent {
   onClickImage = (text) => {
     const newImageArray = [];
     if (Utils.isString(text)) {
-      newImageArray.push({url: text, alt: '加载失败', description: text.substr(text.lastIndexOf('/'))});
+      newImageArray.push({url: text, alt: '加载失败'});
     } else if (text instanceof Array) {
       for (const tmp of text) {
-        newImageArray.push({url: tmp, alt: '加载失败', description: tmp.substr(tmp.lastIndexOf('/'))});
+        newImageArray.push({url: tmp, alt: '加载失败'});
       }
     }
     this.setState({previewVisible: true, previewImages: newImageArray});
@@ -251,6 +277,8 @@ class InnerTable extends React.PureComponent {
 
   /**
    * 将后端返回的一条数据转换为前端表格中能显示的一条数据
+   * 后端返回的往往是数字(比如0表示屏蔽, 1表示正常)
+   * 而表格中要显示对应的汉字, 跟dataSchema中的配置对应
    */
   transformData(obj) {
     const newObj = {};
@@ -618,7 +646,7 @@ class InnerTable extends React.PureComponent {
           </Affix>
           {/*antd的modal实现中, 如果modal不显示, 那内部的组件是不会mount的, 导致第一次访问this.formComponent会undefined, 而我又需要设置表单的值, 所以新增一个initData属性*/}
           <Modal title={this.state.modalTitle} visible={this.state.modalVisible} onOk={this.handleModalOk}
-                 onCancel={this.hideModal}>
+                 onCancel={this.hideModal} maskClosable={false} width={550}>
             <FormComponent ref={(input) => { this.formComponent = input; }} initData={this.formInitData}
                            forUpdate={!this.state.modalInsert}/>
           </Modal>

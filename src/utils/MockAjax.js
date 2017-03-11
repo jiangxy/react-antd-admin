@@ -109,20 +109,31 @@ const mockOptionArray = (field) => {
   return mockResult;
 };
 
-// 几张测试用的图片, 生成数据时会随机从这里面挑选
-const testImageArray = ['http://jxy.me/about/avatar.jpg', 'http://jxy.me/about/avatar.jpg', 'http://jxy.me/about/avatar.jpg', 'http://jxy.me/about/avatar.jpg', 'http://jxy.me/about/avatar.jpg'];
+// 测试用的图片, 生成数据时会随机从这里面挑选
+const testAvatarArray = [
+  'http://jxy.me/about/avatar.jpg',
+  'http://imgtu.5011.net/uploads/content/20170207/4051451486453572.jpg',
+  'http://dynamic-image.yesky.com/600x-/uploadImages/upload/20140912/upload/201409/322l3se203jjpg.jpg',
+];
+const testImageArray = [
+  'http://img.51ztzj.com/upload/image/20140506/dn201405074019_670x419.jpg',
+  'http://img.51ztzj.com/upload/image/20170311/2017031104_670x419.jpg',
+  'http://img.51ztzj.com//upload/image/20170311/2017031107_670x419.jpg',
+  'http://img.51ztzj.com//upload/image/20130218/20130218011_670x419.jpg',
+  'http://img.51ztzj.com//upload/image/20130218/2013021802_670x419.jpg'
+];
 // 模拟图片数据
 const mockImage = (field) => {
-  const rand = Math.floor(Math.random() * testImageArray.length);
   // 返回的是array还是string?
   if (field.max > 1) {
     const mockResult = [];
+    const rand = Math.floor(Math.random() * field.max);
     for (let i = 0; i <= rand; i++) {
-      mockResult.push(testImageArray[i]);
+      mockResult.push(testImageArray[Math.floor(Math.random() * testImageArray.length)]);
     }
     return mockResult;
   } else {
-    return testImageArray[rand];
+    return testAvatarArray[Math.floor(Math.random() * testAvatarArray.length)];
   }
 };
 

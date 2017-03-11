@@ -6,6 +6,15 @@ module.exports = [
     title: 'ID',
     dataType: 'int',
     primary: true,
+    // 当前列如何渲染
+    render(text) {
+      // 只是一个例子, 说明下render函数中可以用this, 甚至可以this.setState之类的
+      // 我会把this绑定到当前的InnerTable组件上
+      // 但需要注意, 如果要使用this, render必须是普通的函数, 不能是箭头函数, 因为箭头函数不能手动绑定this
+      // this不要滥用, 搞出内存泄漏就不好了
+      // console.log(this.props.tableName);
+      return text;
+    },
   },
   {
     key: 'avatar',
@@ -15,19 +24,20 @@ module.exports = [
     sizeLimit: 500,  // 限制图片大小, 单位kb, 如果不设置这个属性, 就使用默认配置, 见config.js中相关配置
     // 默认值, 可以是string也可以是string array
     defaultValue: 'http://jxy.me/about/avatar.jpg',
+    width: 100,  // 图片在表格中显示时会撑满宽度, 为了美观要自己调整下
   },
   {
     key: 'photos',
-    title: '生活照',
+    title: '风景照',
     dataType: 'varchar',
     showType: 'image',
-    max: 9,  // 最多可以上传几张图片? 默认1
+    max: 5,  // 最多可以上传几张图片? 默认1
     // 图片的上传接口, 可以针对每个上传组件单独配置, 如果不单独配置就使用config.js中的默认值
     // 如果这个url是http开头的, 就直接使用这个接口; 否则会根据config.js中的配置判断是否加上host
     url: 'http://remoteHost/uploadImage',
     // max>1时, 默认值是string array
     defaultValue: ['http://jxy.me/about/avatar.jpg', 'http://jxy.me/about/avatar.jpg'],
-    width: 100,  // 图片在表格中显示时会撑满宽度, 为了美观可能要自己调整下
+    width: 150,
   },
   {
     key: 'isNative',
