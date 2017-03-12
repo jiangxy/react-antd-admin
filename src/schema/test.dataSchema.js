@@ -21,8 +21,7 @@ module.exports = [
     // 只有int/varchar可以作为主键, 但是实际上主键一般都是自增id
     primary: true,
 
-    // 可用的showType: normal/radio/select/checkbox/multiSelect/textarea/image/imageArray/file
-    // FIXME: image/imageArray/file类型暂未实现
+    // 可用的showType: normal/radio/select/checkbox/multiSelect/textarea/image/file
     showType: 'normal',  // 默认是normal, 就是最普通的输入框
 
     showInTable: true,  // 这一列是否要在table中展示, 默认true
@@ -92,23 +91,6 @@ module.exports = [
     title: '头像',
     dataType: 'varchar',
     showType: 'image',  // 后端必须提供图片上传接口
-    showInTable: false,
-  },
-  {
-    key: 'pic2',
-    title: '自拍',
-    dataType: 'varchar',
-    showType: 'imageArray',  // 上传多张图片
-    limit: 5, // 最多传几张图片
-    showInTable: false,
-  },
-  {
-    key: 'jianli',
-    title: '简历',
-    dataType: 'varchar',
-    showType: 'file',  // 文件上传
-    url: 'xxx',  // 要上传的地址
-    disabled: true,
     showInTable: false,
   },
   {

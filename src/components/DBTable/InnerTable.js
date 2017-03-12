@@ -223,10 +223,10 @@ class InnerTable extends React.PureComponent {
    */
   renderImage = (text) => {
     if (Utils.isString(text)) {
-      return <img src={text} style={{width: '100%'}} onClick={() => this.onClickImage(text)}/>
+      return <img src={text} alt="图片加载失败" style={{width: '100%'}} onClick={() => this.onClickImage(text)}/>
     } else if (text instanceof Array) {
       // 如果是多张图片, 只取第一张图片在表格中显示
-      return <img src={text[0]} style={{width: '100%'}} onClick={() => this.onClickImage(text)}/>
+      return <img src={text[0]} alt="图片加载失败" style={{width: '100%'}} onClick={() => this.onClickImage(text)}/>
     } else {
       return text;
     }
@@ -234,14 +234,17 @@ class InnerTable extends React.PureComponent {
 
   onClickImage = (text) => {
     const newImageArray = [];
-    if (Utils.isString(text)) {
-      newImageArray.push({url: text, alt: '加载失败'});
+    if (Utils.isString(text) && text.length > 0) {
+      newImageArray.push({url: text, alt: '图片加载失败'});
     } else if (text instanceof Array) {
       for (const tmp of text) {
-        newImageArray.push({url: tmp, alt: '加载失败'});
+        newImageArray.push({url: tmp, alt: '图片加载失败'});
       }
     }
-    this.setState({previewVisible: true, previewImages: newImageArray});
+    // 如果没有图片, 点击就不要显示modal
+    if (newImageArray.length > 0) {
+      this.setState({previewVisible: true, previewImages: newImageArray});
+    }
   };
 
   cancelPreview = () => {
@@ -436,7 +439,21 @@ class InnerTable extends React.PureComponent {
 
     const oldObj = this.formComponent.getFieldsValue();  // 这里的formComponent必定不是undefined
     for (const key in oldObj) {
-      if (!oldObj[key]) {
+      // if (!oldObj[key]) {
+      // 原来的这种写法是有bug的, 因为空字符串也会被过滤掉, 而有时候空字符串传回后端也是有意义的
+
+      // 这里有个问题, 更新的时候, 某个字段后端接收到了null, 到底是忽略这个字段还是将字段更新为null(默认值)? 用过mybatis的应该能明白啥意思
+      // 这个问题貌似是无解的, 在后端字段只有null/not null两种状态, 而前端可以用3种状态: undefined表示不更新, null表示更新为null, 其他值表示更新为特定的值
+      // 只能认为undefined/null都对应于后端的null
+      // 换句话说, 如果DB里某个字段已经有值了, 就不可能再修改为null了, 即使建表时是允许null的. 最多更新成空字符串.
+      // 一般情况下这不会有什么影响, 但某些corner case里可能有bug...
+
+      // 另外, 要理解antd form的取值逻辑. antd的form是controlled components, 只有当FormItem变化时才会取到值(通过onChange方法), 否则对应的key就是undefined
+      // 例如, 如果有一个输入框, 如果不动它, 然后getFieldsValue, 得到的是undefined; 如果先输入几个字符, 然后再全部删除, 再getFieldsValue, 得到的是空字符串
+      // 注意下日期类型, 它返回的是一个moment对象, 所以取到的值可能是null
+      // 如果写自己的FormItem组件, 一定要注意下这个问题
+
+      if (oldObj[key] === undefined || oldObj[key] === null) {
         continue;
       }
 

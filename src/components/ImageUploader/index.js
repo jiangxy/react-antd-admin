@@ -71,8 +71,8 @@ class ImageUploader extends React.Component {
    */
   needRender(nextProps) {
     const {value} = nextProps;
-    // 如果外界传过来的value是undefined, 需要清空文件上传列表
-    if (!value) {
+    // 如果外界传过来的value是undefined或者空字符串, 需要清空文件上传列表
+    if (!value) {   // 注意空字符串也是false
       return true;
     }
 
@@ -109,7 +109,8 @@ class ImageUploader extends React.Component {
   forceUpdateStateByValue(value, max) {
     // 首先清空文件列表
     this.state.fileList.length = 0;
-    if (Utils.isString(value)) {
+    // 注意传进来的value可能是个空字符串
+    if (Utils.isString(value) && value.length > 0) {
       this.state.fileList.push({
         uid: -1,
         name: value.substr(value.lastIndexOf('/')),  // 取url中的最后一部分作为文件名, 不过这个名字其实没啥用...
@@ -236,14 +237,12 @@ class ImageUploader extends React.Component {
         // 只返回给上层"正确"的图片
         if (this.state.fileList.length > 0 && this.state.fileList[0].status === 'done') {
           res = this.state.fileList[0].url;
+        } else {
+          res = '';
         }
       } else {
         res = this.state.fileList.filter(file => file.status === 'done').map(file => file.url);  // 注意先filter再map, 因为map必须是一一对应的
-        // 如果res是undefined, 那对应的, 后端收到的就是null
-        // 如果res是空的数组, 后端收到的就是一个空的List, 但是这样没啥意义, 还是null语义更明确
-        if (res.length === 0) {
-          res = undefined;
-        }
+        // 如果res是undefined, 那对应的, 后端收到的就是null; 如果res是空的数组, 后端收到的就是一个空的List. 注意这两种区别.
       }
 
       // 这个回调配合getValueFromEvent可以定制如何从组件中取值, 很方便, 参考: https://ant.design/components/form-cn/#getFieldDecorator(id,-options)-参数
