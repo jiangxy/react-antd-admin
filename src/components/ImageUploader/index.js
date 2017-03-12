@@ -147,7 +147,7 @@ class ImageUploader extends React.Component {
    */
   beforeUpload = (file) => {
     const sizeLimit = this.props.sizeLimit || globalConfig.upload.imageSizeLimit;
-    logger.debug('sizeLimit = %s', sizeLimit);
+    logger.debug('sizeLimit = %d', sizeLimit);
     if (sizeLimit) {
       if (file.size / 1024 > sizeLimit) {
         message.error(`图片过大，最大只允许${sizeLimit}KB`);
@@ -252,6 +252,7 @@ class ImageUploader extends React.Component {
     }
   };
 
+
   render() {
     const {previewVisible, previewImage, fileList} = this.state;
 
@@ -272,7 +273,7 @@ class ImageUploader extends React.Component {
           {fileList.length >= this.props.max ? null : this.uploadButton}
         </Upload>
         <Modal visible={previewVisible} footer={null} onCancel={this.handleCancel}>
-          <img alt="example" style={{ width: '100%' }} src={previewImage}/>
+          <img alt="加载失败" style={{ width: '100%' }} src={previewImage}/>
         </Modal>
       </div>
     );

@@ -6,6 +6,7 @@ import './index.less';
  * 写样式真是太痛苦了...臣妾真的做不到啊...
  */
 class ImageSlider extends React.PureComponent {
+
   state = {
     previousIndex: 0,
     currentIndex: 0,
@@ -199,7 +200,7 @@ class ImageSlider extends React.PureComponent {
     const bullets = [];
 
     // 准备数据
-    this.props.items.map((item, index) => {
+    this.props.items.forEach((item, index) => {
       const alignment = this._getAlignmentClassName(index);
       const slide = (
         <div key={index} className={`image-gallery-slide${alignment}`} style={this._getSlideStyle(index)}>

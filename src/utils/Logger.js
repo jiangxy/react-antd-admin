@@ -16,6 +16,8 @@ import globalConfig from '../config';
  *   </ul>
  * 我是尽量按着slf4j的习惯来设计的, 目前还比较简单.
  * 不支持pattern/appender之类的, 但对于二手前端来说, 也算够用了.
+ *
+ * 关于变量替换, 参考: https://developers.google.com/web/tools/chrome-devtools/console/console-write#_8
  * </p>
  */
 class Logger {
