@@ -409,6 +409,10 @@ class InnerTable extends React.PureComponent {
       this.formInitData = newData;
     }
 
+    // 理论上来说应该先设置好表单的值(setFieldsValue)再显示modal
+    // 美中不足的是表单的值变化需要一个时间, 显示modal的过程中可能被用户看到"旧值变新值"的过程, 在FileUploader组件上传图片时这个现象很明显
+    // 跟组件的实现方式有关, 可能是css动画的问题, 也可能是setState异步的问题, 似乎暂时无解...
+
     if (multiSelected) {
       this.setState({modalVisible: true, modalTitle: '批量更新', modalInsert: false});
     } else {
