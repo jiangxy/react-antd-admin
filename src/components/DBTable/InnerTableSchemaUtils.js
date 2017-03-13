@@ -8,7 +8,7 @@ import {
   InputNumber,
   Checkbox
 } from 'antd';
-import ImageUploader from '../ImageUploader';
+import FileUploader from '../FileUploader';
 import moment from 'moment';
 import Logger from '../../utils/Logger';
 
@@ -105,6 +105,8 @@ const SchemaUtils = {
         return this.transformTextArea(field);
       case 'image':
         return this.transformImage(field);
+      case 'file':
+        return this.transformFile(field);
       default:
         return this.transformNormal(field);
     }
@@ -226,7 +228,25 @@ const SchemaUtils = {
       initialValue: forUpdate ? undefined : field.defaultValue,
       rules: forUpdate ? field.$$updateValidator : field.validator,
     })(
-      <ImageUploader max={field.max} url={field.url} sizeLimit={field.sizeLimit}/>
+      <FileUploader max={field.max} url={field.url} sizeLimit={field.sizeLimit} accept={field.accept}
+                    placeholder={field.placeholder} type="image"/>
+    ), field);
+  },
+
+  /**
+   * 转换为文件上传组件
+   *
+   * @param field
+   * @returns {XML}
+   */
+  transformFile(field) {
+    logger.debug('transform field %o to file component', field);
+    return this.colWrapper((getFieldDecorator, forUpdate) => getFieldDecorator(field.key, {
+      initialValue: forUpdate ? undefined : field.defaultValue,
+      rules: forUpdate ? field.$$updateValidator : field.validator,
+    })(
+      <FileUploader max={field.max} url={field.url} sizeLimit={field.sizeLimit} accept={field.accept}
+                    placeholder={field.placeholder}/>
     ), field);
   },
 

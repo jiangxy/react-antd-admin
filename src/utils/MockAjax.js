@@ -67,6 +67,9 @@ const mockResult = (tableName, queryObj) => {
         case 'image':
           record[column.key] = mockImage(column);
           break;
+        case 'file':
+          record[column.key] = mockFile(column);
+          break;
         default:
           switch (column.dataType) {
             case 'int':
@@ -134,6 +137,26 @@ const mockImage = (field) => {
     return mockResult;
   } else {
     return testAvatarArray[Math.floor(Math.random() * testAvatarArray.length)];
+  }
+};
+// 三驾马车啊, 虽然是十多年前的...
+const testFileArray = [
+  'https://static.googleusercontent.com/media/research.google.com/zh-CN//archive/gfs-sosp2003.pdf',
+  'https://static.googleusercontent.com/media/research.google.com/zh-CN//archive/mapreduce-osdi04.pdf',
+  'http://xpgc.vicp.net/course/svt/TechDoc/storagepaper/bigtable-osdi06.pdf',
+];
+// 模拟文件
+const mockFile = (field) => {
+  // 返回的是array还是string?
+  if (field.max > 1) {
+    const mockResult = [];
+    const rand = Math.floor(Math.random() * field.max);
+    for (let i = 0; i <= rand; i++) {
+      mockResult.push(testFileArray[Math.floor(Math.random() * testFileArray.length)]);
+    }
+    return mockResult;
+  } else {
+    return testFileArray[Math.floor(Math.random() * testFileArray.length)];
   }
 };
 

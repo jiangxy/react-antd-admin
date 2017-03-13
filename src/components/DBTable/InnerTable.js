@@ -210,6 +210,8 @@ class InnerTable extends React.PureComponent {
       // 对于某些showType我会给个默认的render
       else if (field.showType === 'image') {
         col.render = this.renderImage;
+      } else if (field.showType === 'file') {
+        col.render = this.renderFile;
       }
     });
     return tableSchema;
@@ -249,6 +251,33 @@ class InnerTable extends React.PureComponent {
 
   cancelPreview = () => {
     this.setState({previewVisible: false});
+  };
+
+  /**
+   * 针对file字段的render方法
+   *
+   * @param text
+   * @returns {*}
+   */
+  renderFile = (text) => {
+    if (Utils.isString(text) && text.length > 0) {
+      // 单个文件, 显示为超链接
+      return <a href={text} target="_blank">{text.substr(text.lastIndexOf('/') + 1)}</a>;
+    } else if (text instanceof Array) {
+      if (text.length === 0) {
+        return null;
+      }
+      // 多个文件, 显示为一组超链接
+      const urlArray = [];
+      urlArray.push(<a key={0} href={text[0]} target="_blank">{text[0].substr(text[0].lastIndexOf('/') + 1)}</a>);
+      for (let i = 1; i < text.length; i++) {
+        urlArray.push(<br key={ -1 - i }/>);
+        urlArray.push(<a key={i} href={text[i]} target="_blank">{text[i].substr(text[i].lastIndexOf('/') + 1)}</a>);
+      }
+      return <div>{urlArray}</div>
+    } else {
+      return text;
+    }
   };
   /*END*/
 
@@ -445,7 +474,7 @@ class InnerTable extends React.PureComponent {
       // 这里有个问题, 更新的时候, 某个字段后端接收到了null, 到底是忽略这个字段还是将字段更新为null(默认值)? 用过mybatis的应该能明白啥意思
       // 这个问题貌似是无解的, 在后端字段只有null/not null两种状态, 而前端可以用3种状态: undefined表示不更新, null表示更新为null, 其他值表示更新为特定的值
       // 只能认为undefined/null都对应于后端的null
-      // 换句话说, 如果DB里某个字段已经有值了, 就不可能再修改为null了, 即使建表时是允许null的. 最多更新成空字符串.
+      // 换句话说, 如果DB里某个字段已经有值了, 就不可能再修改为null了, 即使建表时是允许null的. 最多更新成空字符串. 除非跟后端约定一个特殊的值去表示null.
       // 一般情况下这不会有什么影响, 但某些corner case里可能有bug...
 
       // 另外, 要理解antd form的取值逻辑. antd的form是controlled components, 只有当FormItem变化时才会取到值(通过onChange方法), 否则对应的key就是undefined
