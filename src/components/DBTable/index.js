@@ -6,6 +6,7 @@ import InnerTable from './InnerTable.js';
 import InnerPagination from './InnerPagination.js';
 import './index.less';
 import ajax from '../../utils/ajax';
+import Utils from '../../utils';
 import globalConfig from '../../config.js';
 import Logger from '../../utils/Logger';
 
@@ -49,6 +50,8 @@ class DBTable extends React.PureComponent {
   // 代替componentWillMount
   constructor(props) {
     super(props);
+    // 处理url参数
+    this.processQueryParams();
     // 组件初始化时尝试获取schema
     this.tryFetchSchema(props);
   }
@@ -88,6 +91,9 @@ class DBTable extends React.PureComponent {
     this.state.currentPage = 1;
     // this.state.pageSize = 50;  // 这个pageSize不可变, 保持初始值
     this.state.total = 0;
+
+    // 处理url参数
+    this.processQueryParams();
 
     // 切换时也要重新查询一次数据
     this.refresh();
@@ -151,6 +157,18 @@ class DBTable extends React.PureComponent {
   }
 
   /**
+   * 可以在url上加参数, 改变查询条件
+   */
+  processQueryParams() {
+    // 这个方法可以算作一个后门, 甚至可以传入一些querySchema中没配置的参数, 只要后端能处理就可以
+    const params = Utils.getAllQueryParams();
+    // 如果url上有参数
+    if (Object.keys(params).length > 0) {
+      this.state.queryObj = Object.assign({}, this.state.queryObj, params);
+    }
+  }
+
+  /**
    * 按当前的查询条件重新查询一次
    */
   refresh = async() => {
@@ -193,7 +211,6 @@ class DBTable extends React.PureComponent {
   async select(queryObj, page, pageSize) {
     // 为啥这个方法不用箭头函数, 但也不会有this的问题呢? 我猜测是因为这个方法都是被其他箭头函数调用的, 所以也会自动bind this
     // 同理上面的error函数似乎也不需要是箭头函数
-
     const tmpObj = Object.assign({}, queryObj);  // 创建一个新的临时对象, 其实直接修改queryObj也可以
     tmpObj.page = page;
     tmpObj.pageSize = pageSize;

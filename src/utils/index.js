@@ -65,6 +65,32 @@ const Utils = {
   isString(s) {
     return typeof(s) === 'string' || s instanceof String;
   },
+  // 获取url中的所有参数
+  getAllQueryParams() {
+    let str = window.location.href;
+    if (!str) {
+      return {};
+    }
+
+    let num = str.indexOf('?');
+    str = str.substr(num + 1); //取得所有参数
+
+    const res = {};
+    let name;
+    let value;
+
+    const arr = str.split('&'); //各个参数放到数组里
+    for (let i = 0; i < arr.length; i++) {
+      num = arr[i].indexOf('=');
+      if (num > 0) {
+        name = arr[i].substring(0, num).trim();
+        value = arr[i].substr(num + 1).trim();
+        res[name] = value;
+      }
+    }
+
+    return res;
+  },
 };
 
 export default Utils;
