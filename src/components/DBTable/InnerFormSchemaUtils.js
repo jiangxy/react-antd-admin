@@ -23,10 +23,64 @@ const logger = Logger.getLogger('InnerFormSchemaUtils');
 
 // TODO: 其实这里缺少对schema的校验
 
+// 暂存每个表对应的schema callback, 解析schema是个代价较大的操作, 应该尽量复用
+const schemaMap = new Map();
+// 暂存每个表对应的表单组件, key是表名, value是对应的react组件
+const formMap = new Map();
+
 /**
  * 这是一个工具类, 目的是将parse schema的过程独立出来
  */
 const SchemaUtils = {
+
+  /**
+   * 获取某个表单对应的react组件
+   *
+   * @param tableName
+   * @param schema
+   * @returns {*}
+   */
+  getForm(tableName, schema) {
+    if (formMap.has(tableName)) {
+      return formMap.get(tableName);
+    } else {
+      const newForm = this.createForm(tableName, schema);
+      formMap.set(tableName, newForm);
+      return newForm;
+    }
+  },
+
+  /**
+   * 动态生成表单
+   *
+   * @param tableName
+   * @param schema
+   * @returns {*}
+   */
+  createForm(tableName, schema) {
+    // 蛋疼的this
+    const that = this;
+    // 如何动态生成一个组件? 如果用class的写法, 似乎不行...
+    // 只能用传统的ES5的写法, 函数式组件应该也可以, 但是我需要生命周期相关方法
+    const tmpComponent = React.createClass({
+      componentWillMount() {
+        // 组件初始化时读取schema
+        if (schemaMap.has(tableName)) {
+          this.schemaCallback = schemaMap.get(tableName);
+          return;
+        }
+        const schemaCallback = that.parse(schema);
+        schemaMap.set(tableName, schemaCallback);
+        this.schemaCallback = schemaCallback;
+      },
+      render() {
+        // render的时候传入getFieldDecorator, 生成最终的jsx元素
+        return this.schemaCallback(this.props.form.getFieldDecorator);
+      },
+    });
+    // 注意要再用antd的create()方法包装下
+    return Form.create()(tmpComponent);
+  },
 
   /**
    * 解析表单的schema

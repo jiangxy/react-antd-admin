@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  Form,
   Icon,
   Row,
   Col,
@@ -12,6 +11,7 @@ import {
 import globalConfig from 'config.js';
 import moment from 'moment';  // antd@2.0之后, 日期相关的都变成moment对象了, 以前是Date对象
 import FormSchemaUtils from './InnerFormSchemaUtils';
+import Utils from '../../utils';
 import Logger from '../../utils/Logger';
 
 // 这个组件的实现还是有点技巧的, 因为对于不同的schema要显示不同的表单项, 不同表的schema肯定是不同的
@@ -34,45 +34,32 @@ import Logger from '../../utils/Logger';
 
 const logger = Logger.getLogger('InnerForm');
 
-// 暂存每个表对应的schema callback, 解析schema是个代价较大的操作, 应该尽量复用
-const schemaMap = new Map();
-// 暂存每个表对应的表单组件, key是表名, value是对应的react组件
-const formMap = new Map();
-
-/**
- * 动态生成表单对应的react组件
- *
- * @param tableName
- * @param schema
- * @returns {*}
- */
-const createForm = (tableName, schema) => {
-  // 如何动态生成一个组件? 如果用class的写法, 似乎不行...
-  // 只能用传统的ES5的写法, 函数式组件应该也可以, 但是我需要生命周期相关方法
-  const tmpComponent = React.createClass({
-    componentWillMount() {
-      // 组件初始化时读取schema
-      if (schemaMap.has(tableName)) {
-        this.schemaCallback = schemaMap.get(tableName);
-        return;
-      }
-      const schemaCallback = FormSchemaUtils.parse(schema);
-      schemaMap.set(tableName, schemaCallback);
-      this.schemaCallback = schemaCallback;
-    },
-    render() {
-      // render的时候传入getFieldDecorator, 生成最终的jsx元素
-      return this.schemaCallback(this.props.form.getFieldDecorator);
-    },
-  });
-  // 注意要再用antd的create()方法包装下
-  return Form.create()(tmpComponent);
-};
-
 /**
  * 内部表单组件
  */
 class InnerForm extends React.PureComponent {
+
+  // 什么情况会导致InnerForm re-render?
+  // 1. 这个组件没有状态
+  // 2. 只有props会导致re-render, 但由于这个组件是pure的, 所以只有表名变化时才会re-render
+
+  componentDidMount() {
+    this.processQueryParams();
+  }
+
+  componentDidUpdate() {
+    this.processQueryParams();
+  }
+
+  /**
+   * 处理url参数, 填入表单
+   */
+  processQueryParams() {
+    const params = Utils.getAllQueryParams();
+    if (Object.keys(params).length > 0) {
+      this.formComponent.setFieldsValue(params);
+    }
+  }
 
   /**
    * 表单的查询条件不能直接传给后端, 要处理一下
@@ -196,13 +183,7 @@ class InnerForm extends React.PureComponent {
     const {tableName, schema, tableConfig} = this.props;
 
     // 根据当前的tableName, 获取对应的表单组件
-    let FormComponent = null;
-    if (formMap.has(tableName)) {
-      FormComponent = formMap.get(tableName);
-    } else {
-      FormComponent = createForm(tableName, schema);
-      formMap.set(tableName, FormComponent);
-    }
+    const FormComponent = FormSchemaUtils.getForm(tableName, schema);
 
     // 上传相关配置
     const uploadProps = {

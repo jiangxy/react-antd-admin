@@ -88,7 +88,7 @@ module.exports = [
     dataType: 'varchar',
     // 跳转其他组件的例子, 可以带参数, 一般用于关联查询之类的
     // 其实就是react-router的配置
-    render: (text, record) => <Link to={`/index/option1?id=${record.id}`}>{'跳转其他组件'}</Link>,
+    render: (text, record) => <Link to={`/index/option1?name=${record.id}`}>{'跳转其他组件'}</Link>,
     validator: [{type: 'string', pattern: /^[a-zA-Z0-9]+$/, message: '只能是数字+字母'}],
   },
   {
