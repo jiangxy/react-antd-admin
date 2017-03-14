@@ -19,10 +19,130 @@ const Option = Select.Option;
 
 const logger = Logger.getLogger('InnerTableSchemaUtils');
 
+// 跟InnerForm类似, InnerTable也将parse schema的过程独立出来
+// FIXME: 这种缓存也许用weak map更合适
+const tableSchemaMap = new Map();  // key是tableName, value是表格的schema, 还有一些额外信息
+const formSchemaMap = new Map();  // key是tableName, value是表单的schema callback
+const formMap = new Map();  // key是tableName, value是对应的react组件
+
 /**
  * 跟InnerFormSchemaUtils非常类似, 但不用考虑布局相关的东西了
  */
 const SchemaUtils = {
+
+  /**
+   * 解析表格的schema
+   *
+   * @param tableName
+   * @param schema
+   * @returns {*}
+   */
+  getTableSchema(tableName, schema) {
+    // 做一层缓存
+    // 怎么感觉我在到处做缓存啊...工程化风格明显
+    if (tableSchemaMap.has(tableName)) {
+      return tableSchemaMap.get(tableName);
+    }
+
+    const toCache = {};
+    const newCols = [];
+    const fieldMap = new Map();
+    schema.forEach((field) => {
+      // 在表格中显示的时候, 要将radio/checkbox之类的转换为文字
+      // 比如schema中配置的是{key:1, value:haha}, 后端返回的值是1, 但前端展示时要换成haha
+      if (field.options) {
+        const optionMap = {};
+        for (const option of field.options) {
+          optionMap[option.key] = option.value;
+        }
+        // 这样$$的前缀表示是内部的临时变量, 我觉得这种挺蛋疼的, 但没啥好办法...
+        field.$$optionMap = optionMap;
+      }
+
+      // 有点类似索引
+      fieldMap.set(field.key, field);
+      // 当前列是否是主键?
+      if (field.primary) {
+        toCache.primaryKey = field.key;
+      }
+
+      // 不需要在表格中展示
+      if (field.showInTable === false) {
+        return;
+      }
+      const col = {};
+      col.key = field.key;
+      col.dataIndex = field.key;
+      col.title = field.title;
+      col.width = field.width;
+      // 我本来想在解析schema的时候配置一下render然后加到缓存里
+      // 但如果render中使用了this指针就会有问题
+      // 比如用户先使用DBTable组件, 这时会解析schema并缓存, 然后用户通过侧边栏切换到其他组件, DBTable组件unmount
+      // 这时render函数中的this, 就指向这个被unmount的组件了, 就算再重新切回DBTable, 也是重新mount的一个新的组件了
+      // 换句话说, render函数不能缓存, 必须每次解析schema后重新设置render
+      // js的this是一个很迷的问题...参考:http://bonsaiden.github.io/JavaScript-Garden/zh/#function.this
+
+      //if (field.render) {
+      //  col.render = field.render;
+      //}
+      newCols.push(col);
+    });
+
+    toCache.tableSchema = newCols;
+    toCache.fieldMap = fieldMap;
+    tableSchemaMap.set(tableName, toCache);
+
+    return toCache;
+  },
+
+  /**
+   * 获取某个表单对应的react组件
+   *
+   * @param tableName
+   * @param schema
+   * @returns {*}
+   */
+  getForm(tableName, schema) {
+    if (formMap.has(tableName)) {
+      return formMap.get(tableName);
+    } else {
+      const newForm = this.createForm(tableName, schema);
+      formMap.set(tableName, newForm);
+      return newForm;
+    }
+  },
+
+  /**
+   * 动态生成表单
+   *
+   * @param tableName
+   * @param schema
+   * @returns {*}
+   */
+  createForm(tableName, schema) {
+    const that = this;
+    const tmpComponent = React.createClass({
+      componentWillMount() {
+        if (formSchemaMap.has(tableName)) {
+          this.schemaCallback = formSchemaMap.get(tableName);
+          return;
+        }
+        const schemaCallback = that.parseFormSchema(schema);
+        formSchemaMap.set(tableName, schemaCallback);
+        this.schemaCallback = schemaCallback;
+      },
+      // 表单挂载后, 给表单一个初始值
+      componentDidMount(){
+        if (this.props.initData) {  // 这种方法都能想到, 我tm都佩服自己...
+          this.props.form.setFieldsValue(this.props.initData);
+        }
+      },
+      render() {
+        return this.schemaCallback(this.props.form.getFieldDecorator, this.props.forUpdate);
+      },
+    });
+    return Form.create()(tmpComponent);
+  },
 
   /**
    * 这是最主要的方法
@@ -30,7 +150,7 @@ const SchemaUtils = {
    * @param schema
    * @returns {function()}
    */
-  parse(schema) {
+  parseFormSchema(schema) {
     this.parseValidator(schema);
 
     const rows = [];
@@ -91,7 +211,6 @@ const SchemaUtils = {
       ), field);
     }
 
-    // TODO: 支持更多showType
     switch (field.showType) {
       case 'select':
         return this.transformSelect(field);

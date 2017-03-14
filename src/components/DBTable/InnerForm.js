@@ -68,10 +68,10 @@ class InnerForm extends React.PureComponent {
    * @returns {{}}
    */
   filterQueryObj(oldObj) {
-    // 将提交的值中undefined的去掉
+    // 将提交的值中undefined/null去掉
     const newObj = {};
     for (const key in oldObj) {
-      if (oldObj[key]) {
+      if (oldObj[key] !== undefined && oldObj[key] !== null) {
         // 对于js的日期类型, 要转换成字符串再传给后端
         if (oldObj[key] instanceof Date) {
           newObj[key] = oldObj[key].format('yyyy-MM-dd HH:mm:ss');
