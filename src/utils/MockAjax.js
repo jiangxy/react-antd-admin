@@ -1,4 +1,5 @@
 import Logger from './Logger';
+import {ACTION_KEY} from '../components/DBTable/InnerTableRenderUtils';
 
 const logger = new Logger('mockAjax');
 
@@ -47,6 +48,10 @@ const mockResult = (tableName, queryObj) => {
     const record = {};
     // 为了让mock的数据有些区别, 把page算进去
     schema.forEach((column) => {
+      // 对于自定义操作列, 无需mock数据
+      if (column.key === ACTION_KEY) {
+        return;
+      }
       // 生成mock数据还是挺麻烦的, 要判断showType和dataType
       switch (column.showType) {
         case 'select':

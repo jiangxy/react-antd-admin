@@ -14,6 +14,7 @@ import ajax from '../../utils/ajax';
 import moment from 'moment';
 import ImageSlider from '../ImageSlider';
 import InnerTableSchemaUtils from './InnerTableSchemaUtils';
+import InnerTableRenderUtils, {ACTION_KEY} from './InnerTableRenderUtils';
 
 const logger = Logger.getLogger('InnerTable');
 
@@ -85,6 +86,18 @@ class InnerTable extends React.PureComponent {
   }
 
   /**
+   * 当前组件unmount时清除render函数缓存
+   */
+  componentWillUnmount() {
+    logger.debug('InnerTable component unmount and reset RenderUtils');
+    InnerTableRenderUtils.reset();
+  }
+
+
+  /*下面是一些数据处理相关的方法*/
+
+
+  /**
    * 解析表格的schema
    */
   parseTableSchema(props) {
@@ -92,109 +105,16 @@ class InnerTable extends React.PureComponent {
     const parseResult = InnerTableSchemaUtils.getTableSchema(tableName, schema);
 
     this.primaryKey = parseResult.primaryKey;
+    // fieldMap是对原始的dataSchema做了一些处理, 方便查询用的
     this.fieldMap = parseResult.fieldMap;
+    // tableSchema是转换后的Table组件可用的schema
     // 对于tableSchema, 即使命中了缓存, 也要重新设置下render函数
-    this.tableSchema = this.bindTableColRender(parseResult.tableSchema);
+    this.tableSchema = InnerTableRenderUtils.bindRender(parseResult.tableSchema, tableName, this);
   }
-
-
-  /*下面开始是一些默认的render方法*/
-
-  // FIXME: 其实render的作用和transformData有些重复, 要不要考虑合并下?
-
-  /**
-   * 设置tableSchema的render属性
-   *
-   * @param tableSchema
-   * @returns {*}
-   */
-  bindTableColRender(tableSchema) {
-    tableSchema.forEach(col => {
-      const field = this.fieldMap.get(col.key);
-      // 用户自己配置的render最优先
-      if (field && field.render) {
-        col.render = field.render.bind(this);  // 给用户的render手动绑定this
-      }
-      // 对于某些showType我会给个默认的render
-      else if (field.showType === 'image') {
-        col.render = this.renderImage;
-      } else if (field.showType === 'file') {
-        col.render = this.renderFile;
-      }
-    });
-    return tableSchema;
-  }
-
-  /**
-   * 针对image字段的render方法
-   *
-   * @param text
-   * @returns {*}
-   */
-  renderImage = (text) => {
-    if (Utils.isString(text)) {
-      return <img src={text} alt="图片加载失败" style={{width: '100%'}} onClick={() => this.onClickImage(text)}/>
-    } else if (text instanceof Array) {
-      // 如果是多张图片, 只取第一张图片在表格中显示
-      return <img src={text[0]} alt="图片加载失败" style={{width: '100%'}} onClick={() => this.onClickImage(text)}/>
-    } else {
-      return text;
-    }
-  };
-
-  // 点击图片时显示幻灯片
-  onClickImage = (text) => {
-    const newImageArray = [];
-    if (Utils.isString(text) && text.length > 0) {
-      newImageArray.push({url: text, alt: '图片加载失败'});
-    } else if (text instanceof Array) {
-      for (const tmp of text) {
-        newImageArray.push({url: tmp, alt: '图片加载失败'});
-      }
-    }
-    // 如果没有图片, 点击就不要显示modal
-    if (newImageArray.length > 0) {
-      this.setState({previewVisible: true, previewImages: newImageArray});
-    }
-  };
-
-  // 隐藏图片预览
-  cancelPreview = () => {
-    this.setState({previewVisible: false});
-  };
-
-  /**
-   * 针对file字段的render方法
-   *
-   * @param text
-   * @returns {*}
-   */
-  renderFile = (text) => {
-    if (Utils.isString(text) && text.length > 0) {
-      // 单个文件, 显示为超链接
-      return <a href={text} target="_blank">{text.substr(text.lastIndexOf('/') + 1)}</a>;
-    } else if (text instanceof Array) {
-      if (text.length === 0) {
-        return null;
-      }
-      // 多个文件, 显示为一组超链接
-      const urlArray = [];
-      urlArray.push(<a key={0} href={text[0]} target="_blank">{text[0].substr(text[0].lastIndexOf('/') + 1)}</a>);
-      for (let i = 1; i < text.length; i++) {
-        urlArray.push(<br key={ -1 - i }/>);
-        urlArray.push(<a key={i} href={text[i]} target="_blank">{text[i].substr(text[i].lastIndexOf('/') + 1)}</a>);
-      }
-      return <div>{urlArray}</div>
-    } else {
-      return text;
-    }
-  };
-
-  /*render END*/
-
 
   /**
    * 解析表格要显示的数据
+   * 后端返回的数据不能直接在table中显示
    */
   parseTableData(props) {
     // 每行数据都必须有个key属性, 如果指定了主键, 就以主键为key
@@ -202,7 +122,7 @@ class InnerTable extends React.PureComponent {
     const newData = [];
     let i = 0;
     props.data.forEach((obj) => {
-      const newObj = this.transformData(obj);
+      const newObj = this.transformRawDataToTable(obj);
       if (this.primaryKey) {
         newObj.key = obj[this.primaryKey];
       } else {
@@ -223,7 +143,7 @@ class InnerTable extends React.PureComponent {
    * 后端返回的往往是数字(比如0表示屏蔽, 1表示正常)
    * 而表格中要显示对应的汉字, 跟dataSchema中的配置对应
    */
-  transformData(obj) {
+  transformRawDataToTable(obj) {
     const newObj = {};
 
     // 这段代码真是好蛋疼...
@@ -248,8 +168,51 @@ class InnerTable extends React.PureComponent {
     return newObj;
   }
 
+  /**
+   * 将后端返回的一条数据转换为表单中能显示的数据
+   * 主要是处理日期字段, 必须是moment对象
+   */
+  transformRawDataToForm(obj) {
+    const newObj = {};
 
-  /*下面是是一些事件处理的方法*/
+    for (const key in obj) {
+      // rawData中可能有些undefined或null的字段, 过滤掉
+      if (!obj[key])
+        continue;
+
+      if (this.fieldMap.get(key).dataType === 'datetime') {  // 判断是否是日期类型的字段
+        newObj[key] = moment(obj[key]);
+      } else {
+        newObj[key] = obj[key];
+      }
+    }
+
+    return newObj;
+  }
+
+  /**
+   * 将表格中的一条数据转换为表单中能显示的数据
+   */
+  transformTableDataToForm(obj) {
+    return this.transformRawDataToForm(obj.$$rawData);
+  }
+
+  /**
+   * 设置表单要显示的数据
+   */
+  setFormData(data) {
+    // 注意这里, 由于antd modal的特殊性, this.formComponent可能是undefined, 要判断一下
+    if (this.formComponent) {
+      this.formComponent.resetFields();
+      if (data)
+        this.formComponent.setFieldsValue(data);
+    } else {
+      this.formInitData = data;
+    }
+  }
+
+
+  /*下面是一些事件处理的方法*/
 
 
   /**
@@ -259,13 +222,7 @@ class InnerTable extends React.PureComponent {
    */
   onClickInsert = (e) => {
     e.preventDefault();
-    // 注意这里, 由于antd modal的特殊性, this.formComponent可能是undefined, 要判断一下
-    // insert时弹出的表单, 应该是空的
-    if (this.formComponent) {
-      this.formComponent.resetFields();
-    } else {
-      this.formInitData = {};
-    }
+    this.setFormData({});  // insert时弹出的表单应该是空的
     this.setState({
       modalVisible: true,
       modalTitle: '新增',
@@ -282,6 +239,9 @@ class InnerTable extends React.PureComponent {
   onClickUpdate = (e) => {
     e.preventDefault();
 
+    // 重置下keysToUpdate, 因为点击表格上方的更新按钮时, 默认是所有字段都可以更新
+    this.keysToUpdate = undefined;
+
     // 要显示在表单中的值
     const newData = {};
     const multiSelected = this.state.selectedRowKeys.length > 1;  // 是否选择了多项
@@ -292,18 +252,7 @@ class InnerTable extends React.PureComponent {
       const selectedKey = this.state.selectedRowKeys[0];
       for (const record of this.state.data) {  // 找到被选择的那条记录
         if (record.key === selectedKey) {
-          // Object.assign(newData, record);  // 不能直接assign了, 因为日期要特殊处理
-          for (const key in record.$$rawData) {
-            // rawData中可能有些undefined或null的字段, 过滤掉
-            if (!record.$$rawData[key])
-              continue;
-
-            if (this.fieldMap.get(key).dataType === 'datetime') {  // 判断是否是日期类型的字段
-              newData[key] = moment(record.$$rawData[key]);
-            } else {
-              newData[key] = record.$$rawData[key];
-            }
-          }
+          Object.assign(newData, this.transformTableDataToForm(record));
           break;
         }
       }
@@ -312,13 +261,7 @@ class InnerTable extends React.PureComponent {
       logger.debug('update multiple records, keys = %s', newData[this.primaryKey]);
     }
 
-    // 和insert时一样, 同样注意这里表单组件可能还未mount, 要判断一下
-    if (this.formComponent) {
-      this.formComponent.resetFields();
-      this.formComponent.setFieldsValue(newData);
-    } else {
-      this.formInitData = newData;
-    }
+    this.setFormData(newData);
 
     // 理论上来说应该先设置好表单的值(setFieldsValue)再显示modal
     // 美中不足的是表单的值变化需要一个时间, 显示modal的过程中可能被用户看到"旧值变新值"的过程, 在FileUploader组件上传图片时这个现象很明显
@@ -330,6 +273,7 @@ class InnerTable extends React.PureComponent {
       this.setState({modalVisible: true, modalTitle: '更新', modalInsert: false});
     }
   };
+
 
   /**
    * 点击删除按钮, 弹出一个确认对话框
@@ -431,6 +375,49 @@ class InnerTable extends React.PureComponent {
     }
   };
 
+  /**
+   * 点击图片时显示幻灯片
+   *
+   * @param text
+   */
+  onClickImage = (text) => {
+    const newImageArray = [];
+    if (Utils.isString(text) && text.length > 0) {
+      newImageArray.push({url: text, alt: '图片加载失败'});
+    } else if (text instanceof Array) {
+      for (const tmp of text) {
+        newImageArray.push({url: tmp, alt: '图片加载失败'});
+      }
+    }
+    // 如果没有图片, 点击就不要显示modal
+    if (newImageArray.length > 0) {
+      this.setState({previewVisible: true, previewImages: newImageArray});
+    }
+  };
+
+  /**
+   * 隐藏图片预览
+   */
+  cancelPreview = () => {
+    this.setState({previewVisible: false});
+  };
+
+  /**
+   * 针对单条记录的更新
+   *
+   * @param record 要更新的记录
+   * @param keysToUpdate 允许更新哪些字段(弹出的modal中显示哪些字段)
+   */
+  onSingleRecordUpdate = (record, keysToUpdate) => {
+    // 传进来的record是表格中显示的一条数据, 要转换下才能填到表单中
+    // 比如checkbox在表格中显示的是逗号分隔字符串, 但在表单中还是要还原为key数组的
+    const transformedRecord = this.transformTableDataToForm(record);
+    this.setFormData(transformedRecord);
+    this.keysToUpdate = new Set(keysToUpdate);
+
+    this.setState({modalVisible: true, modalTitle: '更新', modalInsert: false});
+  };
+
 
   /*下面开始才是真正的数据库操作*/
 
@@ -463,7 +450,7 @@ class InnerTable extends React.PureComponent {
         // 数据变化后, 刷新下表格, 我之前是变化后刷新整个页面的, 想想还是只刷新表格比较好
         // 新增的数据放到第一行
         const newData = [];
-        const transformedData = this.transformData(res.data);
+        const transformedData = this.transformRawDataToTable(res.data);
         // 表格中的每条记录都必须有个唯一的key, 否则会有warn, 如果有主键就用主键, 否则只能随便给个
         // 如果key有重复的, 会有warn, 显示也会有问题, 所以后端接口要注意下, 如果DB主键都能重复, 也只能呵呵了...
         if (this.primaryKey) {
@@ -491,11 +478,11 @@ class InnerTable extends React.PureComponent {
   /**
    * 真正去更新数据
    */
-  async handleUpdate(obj) {
+  async handleUpdate(obj, keys = this.state.selectedRowKeys) {
     const CRUD = ajax.CRUD(this.props.tableName);
     const hide = message.loading('正在更新...', 0);
     try {
-      const res = await CRUD.update(this.state.selectedRowKeys, obj);
+      const res = await CRUD.update(keys, obj);
       hide();
       if (res.success) {
         notification.success({
@@ -505,9 +492,9 @@ class InnerTable extends React.PureComponent {
         });
 
         // 数据变化后, 刷新下表格
-        const transformedData = this.transformData(obj);
+        const transformedData = this.transformRawDataToTable(obj);
         const newData = [];
-        const keySet = new Set(this.state.selectedRowKeys);  // array转set
+        const keySet = new Set(keys);  // array转set
         for (const record of this.state.data) {
           if (keySet.has(record.key)) {  // 是否是被更新的记录
             const newRecord = Object.assign({}, record, transformedData); // 这个应该是浅拷贝
@@ -547,7 +534,7 @@ class InnerTable extends React.PureComponent {
 
         // 数据变化后, 刷新下表格
         const newData = [];
-        const keySet = new Set(this.state.selectedRowKeys);  // array转set
+        const keySet = new Set(keys);  // array转set
         for (const record of this.state.data) {
           if (!keySet.has(record.key)) {  // 是否是被删除的记录
             newData.push(record);
@@ -603,10 +590,11 @@ class InnerTable extends React.PureComponent {
           <Modal title={this.state.modalTitle} visible={this.state.modalVisible} onOk={this.handleModalOk}
                  onCancel={this.hideModal} maskClosable={false} width={550}>
             <FormComponent ref={(input) => { this.formComponent = input; }} initData={this.formInitData}
-                           forUpdate={!this.state.modalInsert}/>
+                           forUpdate={!this.state.modalInsert} keysToUpdate={this.keysToUpdate}/>
           </Modal>
         </div>
 
+        {/*用于图片预览的modal*/}
         <Modal visible={this.state.previewVisible} footer={null} onCancel={this.cancelPreview}>
           <ImageSlider items={this.state.previewImages}/>
         </Modal>

@@ -11,6 +11,7 @@ import {
 import FileUploader from '../FileUploader';
 import moment from 'moment';
 import Logger from '../../utils/Logger';
+import {ACTION_KEY} from './InnerTableRenderUtils';
 
 const FormItem = Form.Item;
 const RadioGroup = Radio.Group;
@@ -157,6 +158,8 @@ const SchemaUtils = {
     schema.forEach((field) => {
       // 有一些列不需要在表单中展示
       if (field.showInForm === false)
+        return;
+      if (field.key === ACTION_KEY)
         return;
       rows.push(this.transFormField(field));
     });

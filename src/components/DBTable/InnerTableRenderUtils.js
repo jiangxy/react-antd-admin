@@ -28,11 +28,12 @@ const RenderUtils = {
    * 处理表格的schema, 根据情况赋值render函数
    *
    * @param tableSchema 表格的schema
+   * @param tableName 表名
    * @param innerTableComponent 对应的InnerTable组件, 换句话说, 要绑定的this对象
    * @returns {*}
    */
-  bindRender(tableSchema, innerTableComponent) {
-    const {tableName, onClickImage, onSingleRecordUpdate, onSingleRecordDelete, fieldMap} = innerTableComponent;
+  bindRender(tableSchema, tableName, innerTableComponent) {
+    const {onClickImage, onSingleRecordUpdate, onSingleRecordDelete, fieldMap} = innerTableComponent;
     // 命中缓存
     if (this.tableNameSet.has(tableName)) {
       return tableSchema;
