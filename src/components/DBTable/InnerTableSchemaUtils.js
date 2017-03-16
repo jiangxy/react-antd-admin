@@ -330,7 +330,7 @@ const SchemaUtils = {
       initialValue: forUpdate ? undefined : field.defaultValue,
       rules: forUpdate ? field.$$updateValidator : field.validator,
     })(
-      <Input type="textarea" placeholder={field.placeholder || '请输入'} autosize={{ minRows: 1, maxRows: 10 }}
+      <Input type="textarea" placeholder={field.placeholder || '请输入'} autosize={{ minRows: 2, maxRows: 10 }}
              disabled={field.disabled} size="default"/>
     ), field);
   },
