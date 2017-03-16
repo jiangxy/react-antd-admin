@@ -139,7 +139,7 @@ const SchemaUtils = {
         }
       },
       render() {
-        return this.schemaCallback(this.props.form.getFieldDecorator, this.props.forUpdate);
+        return this.schemaCallback(this.props.form.getFieldDecorator, this.props.forUpdate, this.props.keysToUpdate);
       },
     });
     return Form.create()(tmpComponent);
@@ -164,10 +164,14 @@ const SchemaUtils = {
       rows.push(this.transFormField(field));
     });
 
-    return (getFieldDecorator, forUpdate) => {
+    // 返回的schemaCallback有3个参数
+    // 1. getFieldDecorator, 表单组件对应的getFieldDecorator函数
+    // 2. forUpdate, 当前表单是用于insert还是update, 影响到校验规则
+    // 3. keysToUpdate, 允许更新哪些字段, 影响到modal中显示哪些字段, 仅当forUpdate=true时生效
+    return (getFieldDecorator, forUpdate, keysToUpdate) => {
       const formRows = []; // 最终的表单中的一行
       for (const row of rows) {
-        formRows.push(row(getFieldDecorator, forUpdate));
+        formRows.push(row(getFieldDecorator, forUpdate, keysToUpdate));
       }
 
       return (<Form horizontal>
@@ -197,11 +201,16 @@ const SchemaUtils = {
   },
 
   colWrapper(formItem, field) {
-    return (getFieldDecorator, forUpdate) => (
-      <FormItem key={field.key} label={field.title} labelCol={{ span: 4 }} wrapperCol={{ span: 20 }}>
+    return (getFieldDecorator, forUpdate, keysToUpdate) => {
+      // 表单用于更新时, 可以只显示部分字段
+      if (forUpdate === true && keysToUpdate && !keysToUpdate.has(field.key)) {
+        return null;
+      }
+
+      return (<FormItem key={field.key} label={field.title} labelCol={{ span: 4 }} wrapperCol={{ span: 20 }}>
         {formItem(getFieldDecorator, forUpdate)}
-      </FormItem>
-    );
+      </FormItem>);
+    }
   },
 
   transFormField(field) {

@@ -29,7 +29,8 @@ const sidebarMenu = [
       },
       {
         key: 'option3',
-        name: '选项3',
+        name: '自定义操作',
+        icon: 'bulb',
       },
     ],
   },

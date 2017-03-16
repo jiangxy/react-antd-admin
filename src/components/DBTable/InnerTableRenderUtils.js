@@ -33,7 +33,7 @@ const RenderUtils = {
    * @returns {*}
    */
   bindRender(tableSchema, tableName, innerTableComponent) {
-    const {onClickImage, onSingleRecordUpdate, onSingleRecordDelete, fieldMap} = innerTableComponent;
+    const {onClickImage, onSingleRecordUpdate, onSingleRecordDelete, fieldMap, primaryKey} = innerTableComponent;
     // 命中缓存
     if (this.tableNameSet.has(tableName)) {
       return tableSchema;
@@ -60,7 +60,7 @@ const RenderUtils = {
         col.render = this.getFileRender;
       } else if (field.key === ACTION_KEY && field.actions && field.actions.length > 0) {
         logger.debug('bind actions render for field %o', field);
-        col.render = this.getActionRender(field)(onSingleRecordUpdate, onSingleRecordDelete);
+        col.render = this.getActionRender(field, primaryKey)(onSingleRecordUpdate, onSingleRecordDelete);
       }
     });
 
@@ -117,9 +117,10 @@ const RenderUtils = {
    * 渲染自定义操作列
    *
    * @param field
+   * @param primaryKey
    * @returns {function(): function()}
    */
-  getActionRender(field) {
+  getActionRender(field, primaryKey) {
     // 返回一个高阶函数, 输入是两个函数
     // 1. singleRecordUpdate用于更新单条记录的函数, 参数是(record:记录本身, updateKeys:要更新哪些字段)
     // 2. singleRecordDelete用于删除单条记录, 参数是record
@@ -134,6 +135,11 @@ const RenderUtils = {
         const action = actions[i];
         // visible函数用于控制当前行是否显示某个操作
         if (action.visible && !action.visible(record)) {
+          continue;
+        }
+
+        // 如果没有定义主键, 不允许更新/删除
+        if (!primaryKey && (action.type === 'update' || action.type === 'delete')) {
           continue;
         }
 

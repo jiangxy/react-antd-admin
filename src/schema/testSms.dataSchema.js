@@ -13,6 +13,7 @@ module.exports = [
       // 我会把this绑定到当前的InnerTable组件上
       // 但需要注意, 如果要使用this, render必须是普通的函数, 不能是箭头函数, 因为箭头函数不能手动绑定this
       // this不要滥用, 搞出内存泄漏就不好了
+      // render应该尽量是一个纯函数, 不要有副作用
       // console.log(this.props.tableName);
       return text;
     },
@@ -72,7 +73,7 @@ module.exports = [
     // 跳转到外部链接例子, 会打开一个新窗口
     // 我本来想要不要加个showType=url, 但考虑了下还是用render去实现吧
     // 对于某些showType(比如image)我会有默认的render, 但用户自定义的render是最优先的
-    render: (text) => <a href={text} target="_blank">{text}</a>,
+    render: (text, record) => <a href={`/index/option1?name=${record.id}`}>{text}</a>,
   },
   {
     key: 'mail',

@@ -204,8 +204,9 @@ class InnerTable extends React.PureComponent {
     // 注意这里, 由于antd modal的特殊性, this.formComponent可能是undefined, 要判断一下
     if (this.formComponent) {
       this.formComponent.resetFields();
-      if (data)
+      if (data) {
         this.formComponent.setFieldsValue(data);
+      }
     } else {
       this.formInitData = data;
     }
@@ -240,6 +241,7 @@ class InnerTable extends React.PureComponent {
     e.preventDefault();
 
     // 重置下keysToUpdate, 因为点击表格上方的更新按钮时, 默认是所有字段都可以更新
+    this.singleRecordKey = undefined;
     this.keysToUpdate = undefined;
 
     // 要显示在表单中的值
@@ -371,7 +373,15 @@ class InnerTable extends React.PureComponent {
     if (this.state.modalInsert) {
       this.handleInsert(newObj);
     } else {
-      this.handleUpdate(newObj);
+      // 这个modal可能是用于表格上方的"修改"按钮, 也可能用于单条记录的更新
+      // 这里要判断一下
+      if (this.singleRecordKey) {
+        const keys = [];
+        keys.push(this.singleRecordKey);
+        this.handleUpdate(newObj, keys);
+      } else {
+        this.handleUpdate(newObj);
+      }
     }
   };
 
@@ -412,10 +422,43 @@ class InnerTable extends React.PureComponent {
     // 传进来的record是表格中显示的一条数据, 要转换下才能填到表单中
     // 比如checkbox在表格中显示的是逗号分隔字符串, 但在表单中还是要还原为key数组的
     const transformedRecord = this.transformTableDataToForm(record);
-    this.setFormData(transformedRecord);
-    this.keysToUpdate = new Set(keysToUpdate);
+    this.singleRecordKey = record[this.primaryKey];  // 要更新哪条记录
+    if (keysToUpdate) {
+      this.keysToUpdate = new Set(keysToUpdate);
+    } else {
+      this.keysToUpdate = undefined;
+    }
 
-    this.setState({modalVisible: true, modalTitle: '更新', modalInsert: false});
+    //this.setFormData(transformedRecord);
+    // 这里又有一个hack
+    // 我本来是先setFormData再setState的, 但表单的显示总是有点问题, setFieldsValue设置表单的值总是不生效
+    // setFieldsValue的本质也是调用wrapper的setState: https://github.com/ant-design/ant-design/issues/2985, 这也是controlled components的特性了
+    // 猜测问题就在于两个setState的先后顺序, 可能也和antd modal的特性有关
+    // FIXME: 其实我也没太想明白原理, antd的黑盒太难琢磨, 源码还是typescript的, 有点看不懂...
+
+    this.setState({
+      modalVisible: true,
+      modalTitle: '更新',
+      modalInsert: false,
+    }, () => this.setFormData(transformedRecord));  // 这种方法可以保证setState生效后才setFormData
+  };
+
+  /**
+   * 针对单条记录的更新
+   *
+   * @param record
+   */
+  onSingleRecordDelete = (record) => {
+    const selectedKey = record[this.primaryKey];
+    Modal.confirm({
+      title: '确认删除',
+      content: `当前被选中的行: ${selectedKey}`,
+      onOk: () => {
+        const keys = [];
+        keys.push(selectedKey);
+        this.handleDelete(keys);
+      },
+    });
   };
 
 
