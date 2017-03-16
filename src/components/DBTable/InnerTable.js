@@ -431,16 +431,24 @@ class InnerTable extends React.PureComponent {
 
     //this.setFormData(transformedRecord);
     // 这里又有一个hack
-    // 我本来是先setFormData再setState的, 但表单的显示总是有点问题, setFieldsValue设置表单的值总是不生效
-    // setFieldsValue的本质也是调用wrapper的setState: https://github.com/ant-design/ant-design/issues/2985, 这也是controlled components的特性了
-    // 猜测问题就在于两个setState的先后顺序, 可能也和antd modal的特性有关
-    // FIXME: 其实我也没太想明白原理, antd的黑盒太难琢磨, 源码还是typescript的, 有点看不懂...
+    // 我本来是先setFormData再setState的, 但表单的显示总是有点问题, setFieldsValue设置表单的值有时不生效
+    // 只要keysToUpdate改变, 表单的值的显示就会有问题
+    // 换句话说, 一旦表单的schema变化, setFieldsValue就有问题
+
+    // 猜测是setFieldsValue(data)方法的实现比较特殊, 它不会收集data中的所有值, 而是只会收集当前schema中有用的值, 姑且叫做collectKeys
+    // 比如传入的data是{a:1, b:2, c:3}, 而render方法中有用的key是a和b, 调用setFieldsValue时就会忽略c的值
+    // 每次render的时候才会更新collectKeys, 应该是通过getFieldDecorator方法收集的
+
+    // 我碰到的问题, 如果先setFormData, 表单组件只会按当前的schema去收集值
+    // 而setState时会触发表单组件的render方法, 这个表单的schema其实是根据keysToUpdate动态生成的, 很可能collectKeys跟之前完全不一样
+    // 所以渲染出来的表单, 没有把值填进去, 虽然我setFieldsValue时传入了完整的一行记录...
+    // 唉antd的黑盒太难琢磨, 源码还是typescript的, 有点看不懂...
 
     this.setState({
       modalVisible: true,
       modalTitle: '更新',
       modalInsert: false,
-    }, () => this.setFormData(transformedRecord));  // 这种方法可以保证setState生效后才setFormData
+    }, () => this.setFormData(transformedRecord));  // 这种方法可以保证在表单组件render后才setFieldsValue, 就会按新的schema去收集值了
   };
 
   /**
