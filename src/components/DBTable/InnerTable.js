@@ -38,6 +38,9 @@ class InnerTable extends React.PureComponent {
     // 图片预览相关状态
     previewVisible: false,  // 是否显示图片预览modal
     previewImages: [], // 要预览的图片
+
+    // 用户自定义组件modal, 一般用于实现单条记录的更新
+    componentModalVisible: false,
   };
 
   /**
@@ -452,7 +455,7 @@ class InnerTable extends React.PureComponent {
   };
 
   /**
-   * 针对单条记录的更新
+   * 针对单条记录的删除
    *
    * @param record
    */
@@ -467,6 +470,61 @@ class InnerTable extends React.PureComponent {
         this.handleDelete(keys);
       },
     });
+  };
+
+  /**
+   * 自定义组件实现对单条记录的更新
+   * 可以满足一些定制化的需求, 优化用户体验
+   *
+   * @param record 要更新的记录
+   * @param component 要渲染的组件, 会将对应的组件渲染到modal中
+   * @param name 显示modal时的标题
+   */
+  onSingleRecordComponent = (record, component, name) => {
+    // 暂存对应的信息, 后面会用到
+    this.updateComponent = component;  // react组件对应的class, 其实就是个函数
+    this.updateComponentRecord = record;
+    this.updateComponentModalTitle = name;
+    this.setState({componentModalVisible: true});
+  };
+
+  /**
+   * 隐藏自定义组件modal
+   */
+  handleComponentModalCancel = () => {
+    this.setState({componentModalVisible: false});
+  };
+
+  /**
+   * 自定义组件modal点击确认时的回调
+   */
+  handleComponentModalOk = () => {
+    // 首先关闭modal
+    this.setState({componentModalVisible: false});
+    // 自定义的组件正常挂载后, 会以ref的形式暂存
+    if (!this.updateComponentMounted) {  // 正常情况下不会出现这种情况
+      logger.error('user-defined component does not mount');
+      return;
+    }
+    // 用户是否定义了getFieldsValue函数
+    if (!this.updateComponentMounted.getFieldsValue) {
+      logger.debug('user does not define getFieldsValue function');
+      return;
+    }
+    // 获取用户自定义组件的返回值
+    const data = this.updateComponentMounted.getFieldsValue();
+    logger.debug('user-defined component getFieldsValue = %o', data);
+    // 如果组件返回false/undefined, 就什么都不做
+    if (!data) {
+      return;
+    }
+    // 否则更新对应的记录
+    const keys = [];
+    keys.push(this.updateComponentRecord[this.primaryKey]);
+    this.handleUpdate(data, keys);
+
+    // TODO: 其实用户自定义组件不只可以用于更新, 还可以做很多事, e.g. 如果定义了xxx方法就直接跳转某个url之类的
+    // 本质上来讲是和用户约定好的一套协议
   };
 
 
@@ -617,6 +675,8 @@ class InnerTable extends React.PureComponent {
     const hasSelected = this.state.selectedRowKeys.length > 0;  // 是否选择
     const multiSelected = this.state.selectedRowKeys.length > 1;  // 是否选择了多项
 
+    const UpdateComponent = this.updateComponent;
+
     return (
       <div>
         <div className="db-table-button">
@@ -648,6 +708,16 @@ class InnerTable extends React.PureComponent {
         {/*用于图片预览的modal*/}
         <Modal visible={this.state.previewVisible} footer={null} onCancel={this.cancelPreview}>
           <ImageSlider items={this.state.previewImages}/>
+        </Modal>
+
+        {/*用于显示用户自定义组件的modal*/}
+        <Modal title={this.updateComponentModalTitle} visible={this.state.componentModalVisible}
+               onCancel={this.handleComponentModalCancel}
+               onOk={this.handleComponentModalOk} maskClosable={false}>
+          {/*render方法首次调用时, this.updateComponent必定是undefined*/}
+          {this.updateComponent &&
+          <UpdateComponent ref={(input) => { this.updateComponentMounted = input; }}
+                           record={this.updateComponentRecord}/>}
         </Modal>
 
         <Table rowSelection={rowSelection} columns={this.tableSchema} dataSource={this.state.data} pagination={false}

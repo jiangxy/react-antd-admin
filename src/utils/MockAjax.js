@@ -81,7 +81,7 @@ const mockResult = (tableName, queryObj) => {
               record[column.key] = 1000 * queryObj.page + i;
               break;
             case 'float':
-              record[column.key] = new Number(2.0 * queryObj.page + i * 0.1).toFixed(2);
+              record[column.key] = parseFloat(new Number(2.0 * queryObj.page + i * 0.1).toFixed(2));  // toFixed返回的是个string
               break;
             case 'varchar':
               record[column.key] = `mock page=${queryObj.page} ${i}`;

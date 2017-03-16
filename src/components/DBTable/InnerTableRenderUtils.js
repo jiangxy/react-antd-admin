@@ -33,7 +33,7 @@ const RenderUtils = {
    * @returns {*}
    */
   bindRender(tableSchema, tableName, innerTableComponent) {
-    const {onClickImage, onSingleRecordUpdate, onSingleRecordDelete, fieldMap, primaryKey} = innerTableComponent;
+    const {onClickImage, onSingleRecordUpdate, onSingleRecordDelete, onSingleRecordComponent, fieldMap, primaryKey} = innerTableComponent;
     // 命中缓存
     if (this.tableNameSet.has(tableName)) {
       return tableSchema;
@@ -60,7 +60,7 @@ const RenderUtils = {
         col.render = this.getFileRender;
       } else if (field.key === ACTION_KEY && field.actions && field.actions.length > 0) {
         logger.debug('bind actions render for field %o', field);
-        col.render = this.getActionRender(field, primaryKey)(onSingleRecordUpdate, onSingleRecordDelete);
+        col.render = this.getActionRender(field, primaryKey)(onSingleRecordUpdate, onSingleRecordDelete, onSingleRecordComponent);
       }
     });
 
@@ -121,11 +121,12 @@ const RenderUtils = {
    * @returns {function(): function()}
    */
   getActionRender(field, primaryKey) {
-    // 返回一个高阶函数, 输入是两个函数
+    // 返回一个高阶函数, 输入是3个函数
     // 1. singleRecordUpdate用于更新单条记录的函数, 参数是(record:记录本身, updateKeys:要更新哪些字段)
     // 2. singleRecordDelete用于删除单条记录, 参数是record
+    // 3. singleRecordComponent用于自定义组件实现单条记录的更新, 参数是(record:记录本身, component:要渲染的组件, name:在modal中显示时的标题)
 
-    return (singleRecordUpdate, singleRecordDelete) => (text, record) => {
+    return (singleRecordUpdate, singleRecordDelete, singleRecordComponent) => (text, record) => {
       const actions = field.actions;
       const actionArray = [];
 
@@ -168,6 +169,13 @@ const RenderUtils = {
           case 'delete':
             tmp = <a href="#" key={i}
                      onClick={e => {e.preventDefault();singleRecordDelete(record);}}>
+              {action.name}
+            </a>;
+            break;
+          // 自定义组件
+          case 'component':
+            tmp = <a href="#" key={i}
+                     onClick={e => {e.preventDefault();singleRecordComponent(record, action.component, action.name);}}>
               {action.name}
             </a>;
             break;

@@ -1,5 +1,6 @@
 import React from 'react';
 import {Link} from 'react-router';
+import {UpdateGPA1, UpdateGPA2} from '../components/UpdateComponentDemo';
 
 module.exports = [
   {
@@ -59,9 +60,10 @@ module.exports = [
         name: '更新生日',
         type: 'update',
         keys: ['birthday'],
+        visible: (record) => record.id >= 1010,  // 所有action都可以定义visible函数, 返回false则对这行记录不显示这个操作
       },
       {
-        type: 'newLine',  // 换行, 纯粹用于排版的, 更整齐一点
+        type: 'newLine',  // 换行, 纯粹用于排版的, 更美观一点
       },
       {
         type: 'newLine',
@@ -69,10 +71,9 @@ module.exports = [
       {
         name: '删除',
         type: 'delete',  // 删除单条记录
-        visible: (record) => record.id >= 1010,  // 返回false则对这行记录不显示这个操作
       },
       {
-        // 如果不是预定义的type(update/delete/newLine), 就检查是否有render函数
+        // 如果不是预定义的type(update/delete/newLine/component), 就检查是否有render函数
         // 有render函数就直接执行
         render: (record) => <a href={`http://jxy.me?id=${record.id}`} target="_blank">{'跳转url'}</a>,
       },
@@ -86,6 +87,22 @@ module.exports = [
       },
       {
         type: 'newLine',
+      },
+      {
+        type: 'newLine',
+      },
+      // 如果有一些特殊的需求, 或者想要更好的交互, 可以用自定义组件实现对单条记录的更新
+      // 一个常见的情况是DB中某个varchar字段存储的是json, 如果用textarea去编辑json对用户很不友好, 也容易出错, 这时候就可以用自定义组件了
+      // 但自定义的组件必须遵守一些约定, 有点像java的接口, 参考我的例子
+      {
+        name: '自定义组件-更新gpa',
+        type: 'component',
+        component: UpdateGPA1,  // 要渲染哪个组件, 这个组件会被渲染到modal中
+      },
+      {
+        name: '自定义组件2号',
+        type: 'component',
+        component: UpdateGPA2,
       },
     ],
   },
