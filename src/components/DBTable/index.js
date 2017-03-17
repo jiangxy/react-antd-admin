@@ -65,8 +65,16 @@ class DBTable extends React.PureComponent {
 
   // 在react router中切换时, 组件不会重新mount, 只有props会变化
   componentWillReceiveProps(nextProps) {
-    // FIXME: 在react router中切换时, 这个方法会被触发两次, 不知道为啥, 但似乎没啥不良影响, 就是可能会造成重复的render影响效率, 以后应该通过shouldComponentUpdate优化下
     logger.debug('receive new props and try to render, nextProps = %o', nextProps);
+    // 应该只有react router会触发这个方法
+    if (nextProps.routes) {
+      // 如果表名不变的话, 没必要重新加载schema/refresh, 直接return
+      const routes = nextProps.routes;
+      const nextTableName = routes[routes.length - 1].tableName;
+      if (nextTableName === this.tableName) {
+        return;
+      }
+    }
 
     // 在表名切换后要做什么?
     // 1. 根据新的表名重新获取schema
