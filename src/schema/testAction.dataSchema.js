@@ -13,7 +13,7 @@ module.exports = [
     key: 'name',
     title: '姓名',
     dataType: 'varchar',
-    validator: [{type: 'string', max: 5, message: '必填, 最多10个字符'}],
+    validator: [{type: 'string', max: 10, message: '最多10个字符'}],
   },
   {
     key: 'desc',
