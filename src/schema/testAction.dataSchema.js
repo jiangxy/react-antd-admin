@@ -16,6 +16,13 @@ module.exports = [
     validator: [{type: 'string', max: 10, message: '最多10个字符'}],
   },
   {
+    key: 'touxiang',
+    title: '头像',
+    dataType: 'varchar',
+    showType: 'image',
+    width: 60,
+  },
+  {
     key: 'desc',
     title: '描述',
     dataType: 'varchar',
@@ -61,6 +68,11 @@ module.exports = [
         type: 'update',
         keys: ['birthday'],
         visible: (record) => record.id >= 1010,  // 所有action都可以定义visible函数, 返回false则对这行记录不显示这个操作
+      },
+      {
+        name: '更新头像',
+        type: 'update',
+        keys: ['touxiang'],
       },
       {
         type: 'newLine',  // 换行, 纯粹用于排版的, 更美观一点
