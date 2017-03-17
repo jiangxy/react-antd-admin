@@ -17,6 +17,8 @@ module.exports = [
       // console.log(this.props.tableName);
       return text;
     },
+    // 表格中根据这一列排序, 排序规则可以配置
+    sorter: (a, b) => a.id - b.id,
   },
   {
     key: 'avatar',
@@ -64,6 +66,7 @@ module.exports = [
     accept: '.pdf',
     max: 3,
     placeholder: '请上传论文, pdf格式, 最多3个',
+    sorter: (a, b) => a.guanshui.length - b.guanshui.length,
   },
   {
     key: 'url',

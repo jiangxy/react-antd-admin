@@ -76,6 +76,7 @@ const SchemaUtils = {
       col.dataIndex = field.key;
       col.title = field.title;
       col.width = field.width;
+      col.sorter = field.sorter;
       // 我本来想在解析schema的时候配置一下render然后加到缓存里
       // 但如果render中使用了this指针就会有问题
       // 比如用户先使用DBTable组件, 这时会解析schema并缓存, 然后用户通过侧边栏切换到其他组件, DBTable组件unmount
