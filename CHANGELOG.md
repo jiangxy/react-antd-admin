@@ -2,10 +2,10 @@
 
 继续优化DBTable组件
 
-* dataSchema支持showType=image/file, 用于上传图片/文件, 相关配置参考[testSms.dataSchema.js](src/schema/testSms.dataSchema.js)
+* dataSchema支持showType=image/file, 用于上传图片/文件, 相关配置参考[testSms.dataSchema.js](src/schema/testSms.dataSchema.js#L27)
   * 图片支持预览
   * 支持设置图片/文件上传的数量和类型
-* dataSchema支持配置对单行数据的自定义操作, 参考[testAction.dataSchema.js](src/schema/testAction.dataSchema.js)
+* dataSchema支持配置对单行数据的自定义操作, 参考[testAction.dataSchema.js](src/schema/testAction.dataSchema.js#L52)
   * 支持配置普通的update/delete/跳转等操作
   * 更复杂的操作可以使用自定义组件
 * 表单初始化时支持从url中获取参数, 比如访问`/index/option3?id=1`会自动将id=1加入查询条件
