@@ -10,8 +10,8 @@
   * 更复杂的操作可以使用自定义组件
 * 表单初始化时支持从url中获取参数, 比如访问`/index/option3?id=1`会自动将id=1加入查询条件
 * 表格的列支持自定义宽度和排序属性, 对应dataSchema的width和sorter属性
-* 更新[react-java-goos](https://github.com/jiangxy/react-java-goos)到1.2.0
-* 更新文档
+* 更新[react-java-goos](https://github.com/jiangxy/react-java-goos)到1.2.0, 新增`UploadController`等
+* 更新文档, 新增上传相关API说明, 见[后端接口规范](docs/Ajax.md)
 
 详见[DEMO](http://jiangxy.github.io/react-antd-admin)
 
