@@ -20,6 +20,7 @@
 * 服务端接口在任何情况下都返回200, 通过success字段判断是否成功, 不要返回4xx/5xx之类的错误
 * 一般禁止3xx重定向
 * 所有请求, 如果要传参数的, 一般用post, 否则用get
+* 如果没有特殊说明，请求的`Content-Type`默认是`application/json`
 
 ## 用户相关接口
 
@@ -34,7 +35,7 @@
 
 * 接口名：`/api/login`
 * 说明：校验用户的登录信息，成功的话返回当前登录的用户名
-* 输入：request body是一个表单(`application/x-www-form-urlencoded`), 包含两个参数username/password，后端拿到这两个参数去校验
+* 输入：request body是一个表单(`Content-Type=application/x-www-form-urlencoded`)，包含两个参数`username`/`password`，后端拿到这两个参数去校验
 * 输出：成功的话返回登录后的用户名，例如：`{"code":0,"data":"guest","message":"","success":true,"total":null}`，否则返回错误信息。
 
 ### 登出
@@ -52,7 +53,7 @@
 
 * 接口名：`/api/{tableName}/select`
 * 说明：查询数据，传入查询条件，返回查询的结果。
-* 输入：request body是一个object，和querySchema中配置的查询条件对应, 例如`{"page":1,"pageSize":50,"name":"guest","id:100"}`
+* 输入：request body是一个object，和querySchema中配置的查询条件对应，例如`{"page":1,"pageSize":50,"name":"guest","id:100"}`
 * 输出：返回的data是一个数组，包含查询出来的数据（数据格式和dataSchema对应），例如`{"code":0,"data":[{"experience":"Less than 1 year","frequency":"2 to 5 SMS daily","id":6,"isNative":"no","phoneModel":"Nokia"}],"message":"","success":true,"total":31461}`，注意必须返回total字段，表示符合查询条件的记录共有多少条，用于分页。
 
 ### insert-插入
@@ -65,29 +66,29 @@
 ### update-更新
 
 * 接口名：`/api/{tableName}/update?keys=`
-* 说明：更新数据，只能按主键更新，url中要带上keys参数表明要更新哪些记录，可以单条更新也可以批量更新，返回更新成功的记录数 
-* 输入：请求的url：`/api/{tableName}/update?keys=5488`，body是和dataSchema对应的一个object，例如：`{"phoneModel":"jxyjxy","isNative":"yes"}`
+* 说明：更新数据，只能按主键更新，url中要带上keys参数表明要更新哪些记录，可以单条更新也可以批量更新，多个key逗号分隔，返回更新成功的记录数
+* 输入：请求的url例子：`/api/{tableName}/update?keys=5488,5489`，body是和dataSchema对应的一个object，例如：`{"phoneModel":"jxyjxy","isNative":"yes"}`
 * 输出：返回的data是一个数字，表示更新成功的记录数，例如：`{"code":0,"data":1,"message":"","success":true,"total":null}`
 
 ### delete-删除
 
 * 接口名：`/api/{tableName}/delete?keys=`
-* 说明：删除数据，跟更新数据类似，也是只能按主键删除，url中要带上keys参数，返回删除成功的记录数
-* 输入：请求url：`/api/{tableName}/delete?keys=31471`
+* 说明：删除数据，跟更新数据类似，也是只能按主键删除，url中要带上keys参数，多个key逗号分隔，返回删除成功的记录数
+* 输入：请求url例子：`/api/{tableName}/delete?keys=31471`
 * 输出：返回的data是一个数字，表示删除成功的记录数，例如：`{"code":0,"data":1,"message":"","success":true,"total":null}`
 
 ### import-导入
 
 * 接口名：`/api/{tableName}/import`
-* 说明：导入数据, 返回一个string的提示信息
+* 说明：导入数据，返回一个string的提示信息
 * 输入：一个文件上传请求，参数名为file
 * 输出：返回的data是一个string，用于提示用户，例如：`{"data":"导入成功XX条，导入失败YY条，导入失败的行：1,2,3","message":"","success":true,"total":null}`
 
 ### export-导出
 
 * 接口名：`/api/{tableName}/export?q=`
-* 说明：导出数据。这个接口比较特殊。跟select接口类似，也是传入一个querySchema的查询条件。不同之处在于select时查询条件是通过request body传入的，而export时查询条件通过url中的q参数传入。而且这个接口不是通过ajax请求的，用户导出时会直接打开一个新窗口请求这个接口。
-* 输入：请求url：`/api/{tableName}/export?q={"name":"jxy"}`，传入的q是一个string，代表查询条件，后端要拿到这个string再反序列化。
+* 说明：导出数据。这个接口比较特殊。跟select接口类似，也是传入一个querySchema的查询条件。不同之处在于select时查询条件是通过request body传入的，而export时查询条件通过url中的q参数传入。而且这个接口不是通过ajax请求的，用户导出时会直接打开一个新窗口请求这个url。
+* 输入：请求url例子：`/api/{tableName}/export?q={"name":"jxy"}`，传入的q是一个string，代表查询条件，后端要拿到这个string再反序列化。
 * 输出：不要返回json了。返回一个`Content-Disposition=attachment; filename=xxx`的下载请求，浏览器会自动处理这种请求并下载文件。
 
 ## 上传相关接口
@@ -108,7 +109,7 @@
 * 输入：文件上传请求，参数名为file
 * 输出：返回的data是一个string，是文件上传后的url，例如：`{"data":"https://static.googleusercontent.com/media/research.google.com/zh-CN//archive/mapreduce-osdi04.pdf","message":"","success":true,"total":null}`。
 
-## 上传的一些说明
+## 关于上传的一些说明
 
 导入/上传图片/上传文件接口都很类似，输入是一个`Content-Type=multipart/form-data`的上传请求，参数名为file。
 
