@@ -50,7 +50,7 @@
 * 查询条件区：其实就是个表单，所有表单项都是由配置文件生成的（参考[src/schema/test.querySchema.js](src/schema/test.querySchema.js)），支持各种数据类型
 * 各种操作：提供常用的CRUD/导入/导出等操作
 * 查询结果展示：就是一个表格，这个表格的schema也是可配置的（参考[src/schema/test.dataSchema.js](src/schema/test.dataSchema.js)）
-* 针对单条数据的操作：也是可配置的（参考[src/schema/testAction.dataSchema.js](src/schema/testAction.dataSchema.js)）
+* 针对单条数据的操作：也是可配置的（参考[src/schema/testAction.dataSchema.js](src/schema/testAction.dataSchema.js#L52)）
 
 使用者只用关心自己的schema文件就可以了，不用在意渲染出来是什么样子。利用DBTable组件，就可以快速实现对某个表的CRUD了（其实不只可以用于数据库，符合这种操作模式的都可以用）。缺点就是没有了明确的业务含义，运营MM们可能不会用。。。她们又不知道CRUD是啥。所以需要培训下，但也是套近乎的好机会啊😄。
 
