@@ -273,7 +273,7 @@ class App extends React.Component {
     // 非tab模式, 显示面包屑和对应的组件
     else {
       return <div>
-        <Breadcrumb routes={this.props.routes}/>}
+        <Breadcrumb routes={this.props.routes}/>
         <div className="ant-layout-container">
           {this.props.children}
         </div>
