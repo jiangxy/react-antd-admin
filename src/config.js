@@ -15,6 +15,11 @@ module.exports = {
 
   debug: true,  // 是否开启debug模式, 不会请求后端接口, 使用mock的数据
 
+  tabMode: {  // tab模式相关配置
+    enable: false,  // 是否开启tab模式
+    allowDuplicate: false,  // 同一个菜单项只允许一个tab
+  },
+
   log: {
     level: 'info',  // 日志级别, 类似slf4j中的root logger, 目前支持debug/info/warn/error 4种级别
     // 除了root logger以外, 也可以为每个logger单独设置级别

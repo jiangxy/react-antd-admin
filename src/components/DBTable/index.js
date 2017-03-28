@@ -65,6 +65,14 @@ class DBTable extends React.PureComponent {
 
   // 在react router中切换时, 组件不会重新mount, 只有props会变化
   componentWillReceiveProps(nextProps) {
+    // 普通模式下, 所有的CRUD操作都是通过同一个DBTable组件进行的, 只是传入的tableName不同而已
+    // 但是在tab模式下, 为了防止不同tab之间的干扰, 每个tab下都必须是一个"独立"的组件, 换句话说有很多不同DBTable组件的实例
+    // 类似单例和多实例的区别
+    if (globalConfig.tabMode.enable === true) {
+      logger.debug('ignore props update under tabMode');
+      return;
+    }
+
     logger.debug('receive new props and try to render, nextProps = %o', nextProps);
     // 应该只有react router会触发这个方法
     if (nextProps.routes) {
