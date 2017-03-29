@@ -13,4 +13,12 @@ module.exports = [
     title: '测试',
     dataType: 'varchar',
   },
+  {
+    key: 'type',
+    title: '类型',
+    dataType: 'int',
+    showType: 'select',
+    options: [{key: '1', value: '类型1'}, {key: '2', value: '类型2'}],
+    defaultValue: '1',
+  },
 ];

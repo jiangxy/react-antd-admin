@@ -166,6 +166,15 @@ class CRUDUtil {
     const tmp = keys.join(',');
     return this.ajax.get(`${globalConfig.getAPIPath()}/${this.tableName}/delete`, {params: {keys: tmp}});
   }
+
+  /**
+   * 从服务端获取某个表的schema, 会merge到本地的schema中
+   *
+   * @returns {*}
+   */
+  getRemoteSchema() {
+    return this.ajax.get(`${globalConfig.getAPIPath()}/${this.tableName}/schema`);
+  }
 }
 
 export default Ajax;

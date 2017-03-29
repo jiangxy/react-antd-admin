@@ -4,4 +4,5 @@ module.exports = {
   showInsert: true,
   showUpdate: true,
   showDelete: true,
+  asyncSchema: true,
 };

@@ -243,6 +243,41 @@ class MockCRUDUtil {
       resolve(result);
     });
   }
+
+  getRemoteSchema() {
+    return mockPromise(resolve => {
+      if (this.tableName === 'testAction') {
+        resolve({
+          success: true,
+          data: {
+            querySchema: [
+              {
+                key: 'keyFromServer',
+                title: '服务端key',
+              },
+              // 理论上来说服务端可以返回任意schema, 覆盖本地js的配置
+              {
+                key: 'type',
+                options: [{key: '1', value: '来自服务端1'}, {key: '2', value: '来自服务端2'}, {key: '3', value: '来自服务端3'}],
+                defaultValue: '2',
+              },
+            ],
+            dataSchema: [
+              // 服务端甚至可以修改showType
+              {
+                key: 'name',
+                title: '选择姓名',
+                showType: 'radio',
+                options: [{key: 'a', value: 'AA'}, {key: 'b', value: 'BB'}, {key: 'c', value: 'CC'}],
+              },
+            ],
+          },
+        });
+      } else {
+        resolve({success: true, data: {}});
+      }
+    });
+  }
 }
 
 export default MockAjax;
