@@ -1,12 +1,15 @@
 import React from 'react';
 import {notification} from 'antd';
+import globalConfig from '../../config.js';
 import ajax from '../../utils/ajax';
 import Logger from '../../utils/Logger';
 
-const logger = Logger.getLogger('TableSchemaUtils');
+const logger = Logger.getLogger('TableUtils');
 
 // 缓存, key是tableName, value是{querySchema, dataSchema}
 const tableMap = new Map();
+// 缓存, key是tableName, value是tableConfig
+const configMap = new Map();
 
 /**
  * 用于解析表schema的工具类
@@ -127,6 +130,41 @@ export default {
       description: `请联系管理员, 错误信息: ${errorMsg}`,
       duration: 0,
     });
+  },
+
+  /**
+   * 获取某个表的个性化配置, 会合并默认配置
+   *
+   * @param tableName
+   * @returns {*}
+   */
+  getTableConfig(tableName) {
+    if (configMap.has(tableName)) {
+      return configMap.get(tableName);
+    }
+
+    let tableConfig;
+    try {
+      const tmp = require(`../../schema/${tableName}.config.js`);  // 个性化配置加载失败也没关系
+      tableConfig = Object.assign({}, globalConfig.DBTable.default, tmp);  // 注意合并默认配置
+    } catch (e) {
+      logger.warn('can not find config for table %s, use default instead', tableName);
+      tableConfig = Object.assign({}, globalConfig.DBTable.default);
+    }
+
+    configMap.set(tableName, tableConfig);
+    return tableConfig;
+  },
+
+  /**
+   * 某个表是否应该忽略缓存
+   *
+   * @param tableName
+   * @returns {boolean}
+   */
+  shouldIgnoreSchemaCache(tableName) {
+    const tableConfig = this.getTableConfig(tableName);
+    return tableConfig.asyncSchema === true && tableConfig.ignoreSchemaCache === true;
   },
 
 }

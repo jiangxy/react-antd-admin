@@ -4,7 +4,7 @@ import Error from '../Error';
 import InnerForm from './InnerForm.js';
 import InnerTable from './InnerTable.js';
 import InnerPagination from './InnerPagination.js';
-import TableSchemaUtils from './TableSchemaUtils.js';
+import TableUtils from './TableUtils.js';
 import './index.less';
 import ajax from '../../utils/ajax';
 import Utils from '../../utils';
@@ -17,16 +17,6 @@ const logger = Logger.getLogger('DBTable');
  * 操作数据库中的一张表的组件, 又可以分为3个组件: 表单+表格+分页器
  */
 class DBTable extends React.PureComponent {
-
-  // 每个表的默认配置
-  static DEFAULT_CONFIG = {
-    showExport: true,  // 显示导出按钮, 默认true
-    showImport: true,  // 显示导入按钮, 默认true
-    showInsert: true,  // 显示新增按钮, 默认true
-    showUpdate: true,  // 显示修改按钮, 默认true
-    showDelete: true,  // 显示删除按钮, 默认true
-    asyncSchema: false,  // 是否从服务端加载schema, 默认false
-  };
 
   // 父组件要保存子组件的状态...非常蛋疼...
   // 破坏了子组件的"封闭"原则
@@ -174,24 +164,17 @@ class DBTable extends React.PureComponent {
       return;
     }
 
-    let tableConfig;
-    try {
-      const tmp = require(`../../schema/${tableName}.config.js`);  // 个性化配置加载失败也没关系
-      tableConfig = Object.assign({}, DBTable.DEFAULT_CONFIG, tmp);  // 注意合并默认配置
-    } catch (e) {
-      logger.warn('can not find config for table %s, use default instead', tableName);
-      tableConfig = Object.assign({}, DBTable.DEFAULT_CONFIG);
-    }
+    const tableConfig = TableUtils.getTableConfig(tableName);
 
     // 这里注意, 区分同步/异步
-    let tmp = TableSchemaUtils.getCacheSchema(tableName);
+    let tmp = TableUtils.getCacheSchema(tableName);
     if (!tmp) {
       if (tableConfig.asyncSchema === true) {
         // 如果是异步的, 必须给用户一个loading提示
         this.state.loadingSchema = true;
-        tmp = await TableSchemaUtils.getRemoteSchema(tableName);
+        tmp = await TableUtils.getRemoteSchema(tableName);
       } else {
-        tmp = TableSchemaUtils.getLocalSchema(tableName);
+        tmp = TableUtils.getLocalSchema(tableName);
       }
     }
 
