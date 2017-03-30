@@ -5,4 +5,5 @@ module.exports = {
   showUpdate: true,
   showDelete: true,
   asyncSchema: true,
+  ignoreSchemaCache: true,
 };

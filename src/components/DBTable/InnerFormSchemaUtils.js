@@ -11,6 +11,7 @@ import {
   InputNumber,
   Checkbox
 } from 'antd';
+import TableUtils from './TableUtils.js';
 import moment from 'moment';
 import Logger from '../../utils/Logger';
 
@@ -41,11 +42,17 @@ const SchemaUtils = {
    * @returns {*}
    */
   getForm(tableName, schema) {
+    // 是否要忽略缓存
+    // 在忽略缓存的情况下, 每次都会重新解析schema
+    const ignoreCache = TableUtils.shouldIgnoreSchemaCache(tableName);
+
     if (formMap.has(tableName)) {
       return formMap.get(tableName);
     } else {
       const newForm = this.createForm(tableName, schema);
-      formMap.set(tableName, newForm);
+      if (!ignoreCache) {
+        formMap.set(tableName, newForm);
+      }
       return newForm;
     }
   },
@@ -58,6 +65,8 @@ const SchemaUtils = {
    * @returns {*}
    */
   createForm(tableName, schema) {
+    const ignoreCache = TableUtils.shouldIgnoreSchemaCache(tableName);
+
     // 蛋疼的this
     const that = this;
     // 如何动态生成一个组件? 如果用class的写法, 似乎不行...
@@ -70,7 +79,9 @@ const SchemaUtils = {
           return;
         }
         const schemaCallback = that.parse(schema);
-        schemaMap.set(tableName, schemaCallback);
+        if (!ignoreCache) {
+          schemaMap.set(tableName, schemaCallback);
+        }
         this.schemaCallback = schemaCallback;
       },
       render() {

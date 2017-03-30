@@ -1,4 +1,5 @@
 import React from 'react';
+import TableUtils from './TableUtils.js';
 import Logger from '../../utils/Logger';
 import Utils from '../../utils';
 
@@ -64,7 +65,10 @@ const RenderUtils = {
       }
     });
 
-    this.tableNameSet.add(tableName);
+    const ignoreCache = TableUtils.shouldIgnoreSchemaCache(tableName);
+    if (!ignoreCache) {
+      this.tableNameSet.add(tableName);
+    }
     return tableSchema;
   },
 

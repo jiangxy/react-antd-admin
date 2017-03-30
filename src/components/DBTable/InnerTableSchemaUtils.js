@@ -8,6 +8,7 @@ import {
   InputNumber,
   Checkbox
 } from 'antd';
+import TableUtils from './TableUtils.js';
 import FileUploader from '../FileUploader';
 import moment from 'moment';
 import Logger from '../../utils/Logger';
@@ -92,7 +93,11 @@ const SchemaUtils = {
 
     toCache.tableSchema = newCols;
     toCache.fieldMap = fieldMap;
-    tableSchemaMap.set(tableName, toCache);
+
+    const ignoreCache = TableUtils.shouldIgnoreSchemaCache(tableName);
+    if (!ignoreCache) {
+      tableSchemaMap.set(tableName, toCache);
+    }
 
     return toCache;
   },
@@ -105,11 +110,15 @@ const SchemaUtils = {
    * @returns {*}
    */
   getForm(tableName, schema) {
+    const ignoreCache = TableUtils.shouldIgnoreSchemaCache(tableName);
+
     if (formMap.has(tableName)) {
       return formMap.get(tableName);
     } else {
       const newForm = this.createForm(tableName, schema);
-      formMap.set(tableName, newForm);
+      if (!ignoreCache) {
+        formMap.set(tableName, newForm);
+      }
       return newForm;
     }
   },
@@ -122,6 +131,7 @@ const SchemaUtils = {
    * @returns {*}
    */
   createForm(tableName, schema) {
+    const ignoreCache = TableUtils.shouldIgnoreSchemaCache(tableName);
     const that = this;
     const tmpComponent = React.createClass({
       componentWillMount() {
@@ -130,7 +140,9 @@ const SchemaUtils = {
           return;
         }
         const schemaCallback = that.parseFormSchema(schema);
-        formSchemaMap.set(tableName, schemaCallback);
+        if (!ignoreCache) {
+          formSchemaMap.set(tableName, schemaCallback);
+        }
         this.schemaCallback = schemaCallback;
       },
       // 表单挂载后, 给表单一个初始值

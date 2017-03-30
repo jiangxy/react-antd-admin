@@ -245,6 +245,11 @@ class MockCRUDUtil {
   }
 
   getRemoteSchema() {
+    // 这个counter用于测试ignoreSchemaCache选项, 每次请求得到的服务端schema都是不同的
+    if (!this.counter) {
+      this.counter = 0;
+    }
+    this.counter++;
     return mockPromise(resolve => {
       if (this.tableName === 'testAction') {
         resolve({
@@ -253,7 +258,7 @@ class MockCRUDUtil {
             querySchema: [
               {
                 key: 'keyFromServer',
-                title: '服务端key',
+                title: `服务端key ${this.counter}`,
               },
               // 理论上来说服务端可以返回任意schema, 覆盖本地js的配置
               {
@@ -266,7 +271,7 @@ class MockCRUDUtil {
               // 服务端甚至可以修改showType
               {
                 key: 'name',
-                title: '选择姓名',
+                title: `选择姓名  ${this.counter}`,
                 showType: 'radio',
                 options: [{key: 'a', value: 'AA'}, {key: 'b', value: 'BB'}, {key: 'c', value: 'CC'}],
               },

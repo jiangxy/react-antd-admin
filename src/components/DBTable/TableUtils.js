@@ -36,22 +36,33 @@ export default {
    * @returns {{querySchema: *, dataSchema: *}}
    */
   getLocalSchema(tableName) {
+    const ignoreCache = this.shouldIgnoreSchemaCache(tableName);
     let querySchema, dataSchema;
+
     try {
       querySchema = require(`../../schema/${tableName}.querySchema.js`);
+      // 如果是忽略cache, 每次读取的schema都必须是全新的
+      if (ignoreCache) {
+        querySchema = querySchema.map(item => Object.assign({}, item));  // Object.assign是浅拷贝, 不过没啥影响
+      }
     } catch (e) {
       logger.error('load query schema error: %o', e);
     }
 
     try {
       dataSchema = require(`../../schema/${tableName}.dataSchema.js`);
+      if (ignoreCache) {
+        dataSchema = dataSchema.map(item => Object.assign({}, item));
+      }
     } catch (e) {
       logger.error('load data schema error: %o', e);
     }
 
     // 注意这里会更新缓存
     const toCache = {querySchema, dataSchema};
-    tableMap.set(tableName, toCache);
+    if (!ignoreCache) {
+      tableMap.set(tableName, toCache);
+    }
     return toCache;
   },
 
@@ -63,6 +74,7 @@ export default {
    * @returns {{querySchema: *, dataSchema: *}}
    */
   async getRemoteSchema(tableName) {
+    const ignoreCache = this.shouldIgnoreSchemaCache(tableName);
     const localSchema = this.getLocalSchema(tableName);
 
     let querySchema, dataSchema;
@@ -83,7 +95,9 @@ export default {
 
     // 更新缓存
     const toCache = {querySchema, dataSchema};
-    tableMap.set(tableName, toCache);
+    if (!ignoreCache) {
+      tableMap.set(tableName, toCache);
+    }
     return toCache;
   },
 
