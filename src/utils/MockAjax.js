@@ -75,6 +75,9 @@ const mockResult = (tableName, queryObj) => {
         case 'file':
           record[column.key] = mockFile(column);
           break;
+        case 'cascader':
+          record[column.key] = mockCascader(column);
+          break;
         default:
           switch (column.dataType) {
             case 'int':
@@ -163,6 +166,21 @@ const mockFile = (field) => {
   } else {
     return testFileArray[Math.floor(Math.random() * testFileArray.length)];
   }
+};
+
+// 模拟级联选择的数据
+const mockCascader = (field) => {
+  const mockResult = [];
+  const tmp = options => {
+    const rand = Math.floor(Math.random() * options.length);
+    mockResult.push(options[rand].value);
+    if (options[rand].children) {
+      tmp(options[rand].children);
+    }
+  };
+
+  tmp(field.options);
+  return mockResult;
 };
 
 /**

@@ -21,7 +21,7 @@ module.exports = [
     // 只有int/varchar可以作为主键, 但是实际上主键一般都是自增id
     primary: true,
 
-    // 可用的showType: normal/radio/select/checkbox/multiSelect/textarea/image/file
+    // 可用的showType: normal/radio/select/checkbox/multiSelect/textarea/image/file/cascader
     showType: 'normal',  // 默认是normal, 就是最普通的输入框
 
     showInTable: true,  // 这一列是否要在table中展示, 默认true

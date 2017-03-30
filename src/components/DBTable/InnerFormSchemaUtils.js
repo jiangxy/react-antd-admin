@@ -9,7 +9,8 @@ import {
   Icon,
   Radio,
   InputNumber,
-  Checkbox
+  Checkbox,
+  Cascader
 } from 'antd';
 import TableUtils from './TableUtils.js';
 import moment from 'moment';
@@ -138,6 +139,9 @@ const SchemaUtils = {
         case 'between':
           cols.push(this.transformBetween(field));
           break;
+        case 'cascader':
+          cols.push(this.transformCascader(field));
+          break;
         default:
           cols.push(this.transformNormal(field));
       }
@@ -256,6 +260,19 @@ const SchemaUtils = {
       <Select multiple placeholder={field.placeholder || '请选择'} size="default">
         {options}
       </Select>
+    ), field);
+  },
+
+  /**
+   * 转换为级联选择
+   *
+   * @param field
+   * @returns {XML}
+   */
+  transformCascader(field) {
+    logger.debug('transform field %o to Cascader component', field);
+    return this.colWrapper(getFieldDecorator => getFieldDecorator(field.key, {initialValue: field.defaultValue})(
+      <Cascader options={field.options} expandTrigger="hover" placeholder={field.placeholder || '请选择'} size="default"/>
     ), field);
   },
 

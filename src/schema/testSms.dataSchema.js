@@ -101,4 +101,29 @@ module.exports = [
     dataType: 'varchar',
     validator: [{type: 'string', max: 10, message: '最多10个字符!'}],
   },
+  {
+    key: 'location',
+    title: '地理位置',
+    dataType: 'varchar',
+    showType: 'cascader',
+    options: [{
+      value: 'zhejiang',
+      label: '浙江',
+      children: [{
+        value: 'hangzhou',
+        label: '杭州',
+        children: [{
+          value: 'xihu',
+          label: '西湖',
+        }],
+      }],
+    }, {
+      value: 'yuzhou',
+      label: '宇宙中心',
+      children: [{
+        value: 'wudaokou',
+        label: '五道口',
+      }],
+    }],
+  },
 ];

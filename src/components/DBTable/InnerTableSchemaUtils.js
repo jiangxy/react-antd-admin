@@ -6,7 +6,8 @@ import {
   Select,
   Radio,
   InputNumber,
-  Checkbox
+  Checkbox,
+  Cascader
 } from 'antd';
 import TableUtils from './TableUtils.js';
 import FileUploader from '../FileUploader';
@@ -53,12 +54,8 @@ const SchemaUtils = {
       // 在表格中显示的时候, 要将radio/checkbox之类的转换为文字
       // 比如schema中配置的是{key:1, value:haha}, 后端返回的值是1, 但前端展示时要换成haha
       if (field.options) {
-        const optionMap = {};
-        for (const option of field.options) {
-          optionMap[option.key] = option.value;
-        }
         // 这样$$的前缀表示是内部的临时变量, 我觉得这种挺蛋疼的, 但没啥好办法...
-        field.$$optionMap = optionMap;
+        field.$$optionMap = this.transformOptionMap(field.options, field.showType);
       }
 
       // 有点类似索引
@@ -100,6 +97,34 @@ const SchemaUtils = {
     }
 
     return toCache;
+  },
+
+  /**
+   * 和getTableSchema配合的一个方法, 用于解析optionMap
+   *
+   * @param options
+   * @param showType
+   * @returns {{}}
+   */
+  transformOptionMap(options, showType){
+    const optionMap = {};
+
+    // 对于级联选择要特殊处理下
+    if (showType === 'cascader') {
+      const browseOption = (item) => {  // dfs
+        optionMap[item.value] = item.label;
+        if (item.children) {
+          item.children.forEach(browseOption);
+        }
+      };
+      options.forEach(browseOption);
+    } else {
+      for (const option of options) {
+        optionMap[option.key] = option.value;
+      }
+    }
+
+    return optionMap;
   },
 
   /**
@@ -251,6 +276,8 @@ const SchemaUtils = {
         return this.transformImage(field);
       case 'file':
         return this.transformFile(field);
+      case 'cascader':
+        return this.transformCascader(field);
       default:
         return this.transformNormal(field);
     }
@@ -391,6 +418,23 @@ const SchemaUtils = {
     })(
       <FileUploader max={field.max} url={field.url} sizeLimit={field.sizeLimit} accept={field.accept}
                     placeholder={field.placeholder}/>
+    ), field);
+  },
+
+  /**
+   * 转换为级联选择
+   *
+   * @param field
+   * @returns {XML}
+   */
+  transformCascader(field) {
+    logger.debug('transform field %o to Cascader component', field);
+    return this.colWrapper((getFieldDecorator, forUpdate) => getFieldDecorator(field.key, {
+      initialValue: forUpdate ? undefined : field.defaultValue,
+      rules: forUpdate ? field.$$updateValidator : field.validator,
+    })(
+      <Cascader options={field.options} expandTrigger="hover" placeholder={field.placeholder || '请选择'} size="default"
+                disabled={field.disabled}/>
     ), field);
   },
 
