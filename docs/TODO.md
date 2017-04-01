@@ -13,7 +13,7 @@
 - [x] 修改ajax util, 全部变成async/await
 - [x] 想办法减小下bundle大小,或者分片
 - [x] 自定义logger level
-- [ ] 增加一个"TAB模式"?? <- 这种模式下就不需要面包屑了
+- [x] 增加一个"TAB模式"?? <- 这种模式下就不需要面包屑了
 
 ## 侧边栏组件
 
@@ -41,7 +41,7 @@
 - [x] DBTable组件可配置
 - [x] 单条update时, 将原始数据填入modal
 - [x] dataSchema支持showType
-- [ ] dataSchema支持外键约束??
+- [x] dataSchema支持外键约束??
 - [x] dataSchema支持image/file/url的showType
 - [x] 表格中根据showType渲染
 - [x] modal中的表单增加placeholder

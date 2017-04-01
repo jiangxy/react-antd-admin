@@ -22,13 +22,13 @@
 }
 ```
 
-注意querySchema/dataSchema不是要求必须返回的，服务端甚至可以返回一个空的对象：`data: {}`，参考[后端接口规范](Ajax.md#L103)，也可以参考[MockAjax.js](../src/utils/MockAjax.js#L265)里的例子。
+注意querySchema/dataSchema不是要求必须返回的，服务端甚至可以返回一个空的对象：`data: {}`，参考[MockAjax.js](../src/utils/MockAjax.js#L265)里的例子，也可以参考[后端接口规范](Ajax.md)。
 
-剩下的问题就是，如何将本地的schema（本地的{tableName}.querySchema.js文件）和远程的schema合并。大概的逻辑如下：
+剩下的问题就是，如何将本地的schema（本地的`{tableName}.querySchema.js`文件）和远程的schema合并。大概的逻辑如下：
 
 1. 如果找不到本地schema，就以远程schema为准；
 2. 如果本地schema和远程schema都不存在，报错；
-3. 如果本地schema和远程schema都存在，要将二者合并作为最终的schema。合并时已本地schema为基准，以key为标识，相同key的字段会被合并
+3. 如果本地schema和远程schema都存在，要将二者合并作为最终的schema。合并时以本地schema为基准，以key为标识，相同key的字段会被合并
 	* 某个key如果在远程和本地都存在，远程的配置会覆盖本地的配置，合并逻辑类似`newField = Object.assign{{}, local, remote}`
 	* 某个key如果只在远程存在，认为是服务端要新增一个字段，新的key会被加到最终的schema末尾
 	* 某个key如果只在本地存在，就保持原样
@@ -43,9 +43,8 @@
 
 ## ignoreSchemaCache
 
-出于性能考虑，异步schema模式下，我只会在刚初始化某个表时请求一次服务端并合并schema，然后将schema缓存起来。后续再访问这个表的时候（比如在侧边栏菜单中切换）会直接读取缓存的schema。这样有个问题就是服务端接口变化后，要刷新下页面才能看到效果，在某些情况下可能不太方便。所以提供了一个ignoreSchemaCache配置，默认值false。当ignoreSchemaCache=true时，每次组件初始化都会重新请求后端接口并合并schema。服务端接口变化时，侧边栏中切换下就能看到效果了，不用刷新整个页面。
+出于性能考虑，异步schema模式下，我只会在刚初始化某个表时请求一次服务端并合并schema，然后将schema缓存起来。后续再访问这个表的时候（比如在侧边栏菜单中切换）会直接读取缓存的schema。这样有个问题就是服务端接口变化后，要刷新下页面才能看到效果，在某些情况下可能不太方便。所以提供了一个ignoreSchemaCache配置，默认值false。当ignoreSchemaCache=true时，每次DBTable组件初始化/切换都会重新请求后端接口并合并schema。服务端接口变化时，侧边栏中切换下就能看到效果了，不用刷新整个页面。
 
 # 其他
 
 异步schema可以做到很多有意思的事情，也许以后可以考虑把menu.js、路由等都做成异步的。。。我也一直在想，也许可以做成云端服务，用户只要提供配置和接口就好了，不用自己去编译js。
-
