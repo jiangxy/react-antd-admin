@@ -1,6 +1,6 @@
 # React通用后台
 
-目标是快速搭建一个可用的后台界面，可以先看下[DEMO](http://jiangxy.github.io/react-antd-admin)，用户名/密码：guest/guest。友情提示：这个DEMO还是有点大的，加载可能稍慢，注意网速。。。
+目标是快速搭建一个可用的后台界面，可以先看下[DEMO(普通)](http://jiangxy.github.io/react-antd-admin) / [DEMO(TAB模式)](http://jiangxy.github.io/react-antd-admin/tabMode)，用户名/密码：guest/guest。友情提示：这个DEMO还是有点大的，加载可能稍慢，注意网速。。。
 
 也可以[点击这里](docs/Screenshot.md)查看截图，包含一些主要特性的演示。
 

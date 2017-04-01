@@ -1,10 +1,13 @@
 ## 1.4.0
 
-* 新增一个“TAB模式”, 参考[DEMO](http://jiangxy.github.io/react-antd-admin/tabMode), 相关说明见[这里](docs/tabMode.md)
-* DBTable组件的querySchema/dataSchema可以异步加载了, 文档见[这里](docs/asyncSchema.md), 例子: [testAction.config.js](src/schema/testAction.config.js#L7)
-* 新增`cascader`的showType, 用于级联选择, 例子: [testSms.querySchema.js](src/schema/testSms.querySchema.js#L38)
+* 新增“TAB模式”, 可以平行显示多个菜单项了, 参考[DEMO](http://jiangxy.github.io/react-antd-admin/tabMode)
+    * 使用TAB模式有一些注意事项, 相关说明见[关于TAB模式](docs/TabMode.md)
+* DBTable组件的querySchema/dataSchema可以异步加载了, 可以对每个表分别配置, 例子: [testAction.config.js](src/schema/testAction.config.js#L7)
+    * 更详细的配置请参考[异步schema相关配置](docs/AsyncSchema.md), 
+* DBTable新增`cascader`的showType, 用于级联选择, 例子: [testSms.querySchema.js](src/schema/testSms.querySchema.js#L38)
+* DBTable的默认配置移到[config.js](src/config.js#L68)中, 可按需修改
 * 更新[react-java-goos](https://github.com/jiangxy/react-java-goos)到1.3.0
-* 更新文档, 新增异步schema相关API说明, 见[后端接口规范](docs/Ajax.md)
+* 更新后端接口文档, 新增异步schema相关API说明, 见[后端接口规范](docs/Ajax.md)
 
 ## 1.3.0
 
