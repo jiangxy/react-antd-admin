@@ -52,6 +52,8 @@
 * 查询结果展示：就是一个表格，这个表格的schema也是可配置的（参考[src/schema/test.dataSchema.js](src/schema/test.dataSchema.js)）
 * 针对单条数据的操作：也是可配置的（参考[src/schema/testAction.dataSchema.js](src/schema/testAction.dataSchema.js#L52)）
 
+另外提醒下，1.4.0版本之后，querySchema和dataSchema不一定要用js文件配置了，可以从服务端异步加载了，参考[异步schema相关配置](docs/AsyncSchema.md)。
+
 使用者只用关心自己的schema文件就可以了，不用在意渲染出来是什么样子。利用DBTable组件，就可以快速实现对某个表的CRUD了（其实不只可以用于数据库，符合这种操作模式的都可以用）。缺点就是没有了明确的业务含义，运营MM们可能不会用。。。她们又不知道CRUD是啥。所以需要培训下，但也是套近乎的好机会啊😄。
 
 但是且慢，只有界面是不够的，**如何跟后端对接**？于是我又定义了[后端接口格式](docs/Ajax.md)。只要按这个格式去写后端接口，就可以跟这套通用后台无缝对接。如果你跟我一样是个懒人，而且恰巧是用java的，又恰巧后端是基于Spring的，那也可以使用我提供的一个[小工具](https://github.com/jiangxy/react-java-goos)直接生成后端接口，然后填写自己的业务逻辑就可以了。
