@@ -39,6 +39,8 @@ class DBTable extends React.PureComponent {
     // 分页器的状态
     currentPage: 1,  // 当前第几页, 注意页码是从1开始的, 以前总是纠结页码从0还是1开始, 这里统一下, 跟显示给用户的一致
     pageSize: globalConfig.DBTable.pageSize || 50,  // pageSize默认值50, 这个值一旦初始化就是不可变的
+    showSizeChanger: globalConfig.DBTable.showSizeChanger, //是否显示修改每页显示数量的选项
+    pageSizeOptions: globalConfig.DBTable.pageSizeOptions, //每页面显示数量选项
     total: 0,  // 总共有多少条数据
   };
 
@@ -320,6 +322,27 @@ class DBTable extends React.PureComponent {
   };
 
   /**
+   * 切换每页显示数量时触发查询
+   *
+   * @param page
+   */
+  handleShowPageChange = async(page,pageSize) => {
+    logger.debug('handlShowPageSizeChange, page = %d', page);
+    const res = await this.select(this.state.queryObj, page, pageSize);
+    if (res.success) {
+      this.setState({
+        currentPage: page,
+        data: res.data,
+        total: res.total,
+        tableLoading: false,
+        pageSize: pageSize,
+      });
+    } else {
+      this.error(res.message);
+    }
+  };
+
+  /**
    * 点击提交按钮时触发查询
    *
    * @param queryObj
@@ -381,6 +404,7 @@ class DBTable extends React.PureComponent {
                     tableConfig={this.tableConfig} tableName={this.tableName}/>
         <InnerPagination currentPage={this.state.currentPage} total={this.state.total} pageSize={this.state.pageSize}
                          parentHandlePageChange={this.handlePageChange} tableConfig={this.tableConfig}
+                         showSizeChanger={this.state.showSizeChanger} parentHandleShowPageChange={this.handleShowPageChange}
                          tableName={this.tableName}/>
       </Spin>
     );
