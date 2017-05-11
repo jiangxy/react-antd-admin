@@ -64,8 +64,8 @@ module.exports = {
 
   DBTable: {  // DBTable组件相关配置
     pageSize: 50, // 表格每页显示多少条数据
-    showSizeChanger:true, //是否可以修改每页显示多少条数据
-    pageSizeOptions:['10', '20', '50', '100'], //显示每页显示多少条数据的选项
+    showSizeChanger: true, // 是否可以修改每页显示多少条数据
+    pageSizeOptions: ['10', '20', '50', '100'], // 指定每页可以显示多少条
 
     default: {  // 针对每个表格的默认配置
       showExport: true,  // 显示导出按钮, 默认true

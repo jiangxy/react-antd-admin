@@ -21,7 +21,8 @@ class InnerPagination extends React.PureComponent {
           //是否显示“每页显示条目数”,对应 antd Pagination组件的showSizeChanger属性
           showSizeChanger={this.props.showSizeChanger}
           //修改“每页显示条目数”时触发,对应 antd Pagination组件的onShowSizeChange属性
-+         onShowSizeChange={this.props.parentHandleShowPageChange}
+          onShowSizeChange={this.props.parentHandleShowPageChange}
+          pageSizeOptions={this.props.pageSizeOptions}
         />
       </div>
     );
