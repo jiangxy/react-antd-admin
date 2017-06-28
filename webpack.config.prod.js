@@ -3,12 +3,12 @@ const path = require('path');
 const globalConfig = require('./src/config.js');
 
 const ExtractTextPlugin = require("extract-text-webpack-plugin");
-const CompressionPlugin = require("compression-webpack-plugin");
+// const CompressionPlugin = require("compression-webpack-plugin");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const babelLoaderConfig = {
   presets: ['latest', 'stage-0', 'react'],
-  plugins: [['import', {libraryName: 'antd', style: true}]],
+  // plugins: [['import', {libraryName: 'antd', style: true}]],
   cacheDirectory: true,
 };
 
@@ -28,7 +28,7 @@ module.exports = {
   devtool: 'cheap-module-source-map',
 
   entry: [
-    'babel-polyfill',
+    // 'babel-polyfill',
     './src/index.js',
   ],
 
@@ -36,6 +36,19 @@ module.exports = {
     path: __dirname + '/dist',
     filename: 'bundle.min.js',
     // publicPath: 'http://mycdn.com/', // require时用来生成图片的地址
+  },
+
+  externals: {
+    'react': "React",
+    'react-dom': 'ReactDOM',
+    'react-router': 'ReactRouter',
+    'redux': 'Redux',
+    'react-redux': 'ReactRedux',
+
+    'superagent': 'superagent',
+    'moment': 'moment',
+
+    'antd': 'antd'
   },
 
   resolve: {
@@ -91,23 +104,23 @@ module.exports = {
     // 抽离公共部分, 要了解CommonsChunkPlugin的原理, 首先要搞清楚chunk的概念
     // CommonsChunkPlugin做的其实就是把公共模块抽出来, 可以单独生成一个新的文件, 也可以附加到已有的chunk上
     // 同时还会加上webpack的runtime相关代码
-    new webpack.optimize.CommonsChunkPlugin({
-      name: 'vendor',
-      filename: 'vendor.min.js',
-      // 这个函数决定哪些模块会被放到vender.min.js中
-      minChunks: (module) => {
-        // 得到资源路径
-        var resource = module.resource;
-        if (!resource)
-          return false;
-        // 坑爹的webpack, for-of里不用能const, 会有bug
-        for (var libName of vendorLibs) {
-          if (resource.indexOf(path.resolve(__dirname, 'node_modules', libName)) >= 0)
-            return true;
-        }
-        return false;
-      },
-    }),
+    // new webpack.optimize.CommonsChunkPlugin({
+    //   name: 'vendor',
+    //   filename: 'vendor.min.js',
+    //   // 这个函数决定哪些模块会被放到vender.min.js中
+    //   minChunks: (module) => {
+    //     // 得到资源路径
+    //     var resource = module.resource;
+    //     if (!resource)
+    //       return false;
+    //     // 坑爹的webpack, for-of里不用能const, 会有bug
+    //     for (var libName of vendorLibs) {
+    //       if (resource.indexOf(path.resolve(__dirname, 'node_modules', libName)) >= 0)
+    //         return true;
+    //     }
+    //     return false;
+    //   },
+    // }),
 
     new webpack.optimize.DedupePlugin(),
     // 比对id的使用频率和分布来得出最短的id分配给使用频率高的模块
@@ -118,14 +131,14 @@ module.exports = {
 
     // css单独抽出来
     new ExtractTextPlugin('bundle.min.css', {allChunks: false}),
-    // 压缩成gzip格式
-    new CompressionPlugin({
-      asset: "[path].gz[query]",
-      algorithm: "gzip",
-      test: /\.js$|\.css$|\.html$/,
-      threshold: 10240,
-      minRatio: 0,
-    }),
+    // // 压缩成gzip格式
+    // new CompressionPlugin({
+    //   asset: "[path].gz[query]",
+    //   algorithm: "gzip",
+    //   test: /\.js$|\.css$|\.html$/,
+    //   threshold: 10240,
+    //   minRatio: 0,
+    // }),
 
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
