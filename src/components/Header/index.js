@@ -1,10 +1,11 @@
 import React from 'react';
 import {Link} from 'react-router';
-import {Icon, Menu} from 'antd';
+import {Icon, Menu, Popover} from 'antd';
 import Logger from '../../utils/Logger';
 import globalConfig from 'config';
 import './index.less';
 import {headerMenu} from 'menu';
+import Sidebar from '../Sidebar';
 
 const SubMenu = Menu.SubMenu;  // 为了使用方便
 const MenuItem = Menu.Item;
@@ -16,6 +17,9 @@ const logger = Logger.getLogger('Header');
  * 定义Header组件, 包括登录/注销的链接, 以及一些自定义链接
  */
 class Header extends React.PureComponent {
+  state = {
+    popoverVisible: false
+  }
 
   // parse菜单的过程和sidebar组件差不多, copy&paste
 
@@ -115,11 +119,36 @@ class Header extends React.PureComponent {
   // FIXME: 这里其实有个bug, 如果菜单名称很长可能会导致overflow, 出现滚动条
   // 暂时无法解决..., 怎么调css都不对
 
+  switchMenuPopover = () => {
+    this.setState({
+      popoverVisible: !this.state.popoverVisible
+    })
+  }
+  handleVisibleChange = (popoverVisible) => {
+    this.setState({ popoverVisible });
+  }
+
   render() {
+    const { isNavbar } = this.props
+
     return (
       <div className="ant-layout-header">
         {/*定义header中的菜单, 从右向左依次是注销/用户菜单/其他自定义菜单*/}
         <Menu className="header-menu" mode="horizontal">
+          {isNavbar && (
+            <Popover
+                content={<Sidebar isSimple={true} switchMenuPopover={this.switchMenuPopover} />}
+                overlayClassName="ant-layout-popovermenu"
+                placement="bottomLeft"
+                trigger="click"
+                visible={this.state.popoverVisible}
+                onVisibleChange={this.handleVisibleChange} >
+              <span className="ant-layout-popoverbtn">
+                <Icon type="bars" />
+              </span>
+            </Popover>
+          )}
+
           {this.userMenu}
           {this.menu}
         </Menu>

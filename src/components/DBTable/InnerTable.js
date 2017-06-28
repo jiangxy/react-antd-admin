@@ -720,7 +720,8 @@ class InnerTable extends React.PureComponent {
                            record={this.updateComponentRecord}/>}
         </Modal>
 
-        <Table rowSelection={rowSelection} columns={this.tableSchema} dataSource={this.state.data} pagination={false}
+        <Table className="DBTable-innerTable"
+               rowSelection={rowSelection} columns={this.tableSchema} dataSource={this.state.data} pagination={false}
                loading={tableLoading}/>
       </div>
     );

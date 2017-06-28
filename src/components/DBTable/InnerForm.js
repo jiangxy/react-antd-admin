@@ -199,7 +199,7 @@ class InnerForm extends React.PureComponent {
         {/*这个渲染组件的方法很有意思, 另外注意这里的ref*/}
         <FormComponent ref={(input) => { this.formComponent = input; }}/>
         <Row>
-          <Col span={12} offset={12} style={{ textAlign: 'right' }}>
+          <Col lg={{ span: 12, offset: 12 }} md={{ span: 24, offset: 8 }} style={{ textAlign: 'right' }}>
             <Button type="primary" onClick={this.handleSubmit}><Icon type="search"/>查询</Button>
             <Button onClick={this.handleReset}><Icon type="cross"/>清除条件</Button>
             {tableConfig.showExport ?

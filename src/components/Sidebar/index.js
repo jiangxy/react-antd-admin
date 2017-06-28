@@ -193,16 +193,32 @@ class Sidebar extends React.PureComponent {
     }
   };
 
+  genMenus(isDark=true) {
+    const { switchMenuPopover } = this.props
+
+    return (
+      <Menu mode="inline"
+          theme={isDark ? 'dark' : 'light'}
+          onOpenChange={this.handleOpenChange}
+          onSelect={this.handleSelect}
+          openKeys={this.props.collapse ? [] : this.state.openKeys}
+          onClick={switchMenuPopover}>
+        {this.menu}
+      </Menu>
+    )
+  }
+
   render() {
+    const { switchMenuPopover } = this.props
+
+    if (this.props.isSimple) {
+      return this.genMenus(false)
+    }
+
     return (
       <aside className={this.props.collapse ? "ant-layout-sidebar-collapse" : "ant-layout-sidebar"}>
         <Logo collapse={this.props.collapse}/>
-        <Menu theme="dark" mode="inline"
-              onOpenChange={this.handleOpenChange}
-              onSelect={this.handleSelect}
-              openKeys={this.props.collapse ? [] : this.state.openKeys}>
-          {this.menu}
-        </Menu>
+        {this.genMenus(true)}
         <div className="ant-layout-sidebar-trigger" onClick={this.props.handleClickCollapse}>
           <Icon type={this.props.collapse ? "right" : "left"}/>
         </div>

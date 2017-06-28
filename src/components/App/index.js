@@ -15,6 +15,7 @@ import ajax from '../../utils/ajax';
 import Logger from '../../utils/Logger';
 import sidebarMenu, {headerMenu} from '../../menu.js';
 import {loginSuccessCreator} from '../../redux/Login.js';
+import { checkIsNavbar } from './isNavbar'
 
 const TabPane = Tabs.TabPane;
 const logger = Logger.getLogger('App');
@@ -38,6 +39,8 @@ class App extends React.Component {
     // tab模式相关的状态
     currentTabKey: '',  // 当前激活的是哪个tab
     tabPanes: [],  // 当前总共有哪些tab
+
+    isNavbar: checkIsNavbar(),
   };
 
   /**
@@ -102,6 +105,8 @@ class App extends React.Component {
         this.handleLoginError(`网络请求出错: ${e.message}`);
       }
     }
+
+    this.startResize()
   }
 
   handleLoginError(errorMsg) {
@@ -119,7 +124,17 @@ class App extends React.Component {
     }
   }
 
-
+  startResize() {
+    let tid;
+    window.onresize = () => {
+      clearTimeout(tid)
+      tid = setTimeout(() => {
+        let isNavbar = checkIsNavbar()
+        if (isNavbar != this.state.isNavbar)
+          this.setState({ isNavbar })
+      }, 300)
+    }
+  }
   // 下面开始是tab相关逻辑
 
 
@@ -293,14 +308,18 @@ class App extends React.Component {
       return <Login />;
     }
 
+    const { isNavbar } = this.state
+    let style = isNavbar ? { marginLeft: 0 } : null
+
     // 正常显示
     return (
       <div className="ant-layout-base">
         {/*整个页面被一个ant-layout-base的div包围, 分为sidebar/header/footer/content等几部分*/}
-        <Sidebar />
+        {!isNavbar && <Sidebar/>}
 
-        <div id="main-content-div" className={this.props.collapse ? 'ant-layout-main-collapse' : 'ant-layout-main'}>
-          <Header userName={this.props.userName}/>
+        <div id="main-content-div" className={this.props.collapse ? 'ant-layout-main-collapse' : 'ant-layout-main'}
+            style={style}>
+          <Header userName={this.props.userName} isNavbar={isNavbar}/>
           {this.renderBody()}
           <Footer />
         </div>
